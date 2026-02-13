@@ -1,20 +1,23 @@
-Project idea: For discussing interests in rooms (video-chat, voice-chat, chat).
-Can be used also as an educational/teaching tool and invitations are sold if teacher's rating is high enough
+0. Building models
+1. Serializer + View (Category, Topic) + fixtures
+2. auth
+3. serializer, view room (CRUD)
+
 
 +------------------+        +------------------+
-|      User        |        |     Category     |
+|     ✅ User      |        |    ✅ Category   |
 +------------------+        +------------------+
 | id (PK)          |        | slug (PK)        |
 | username         |        | name             |
 | first_name       |        +------------------+
 | second_name      |
-| birth_date       |
-| bio              |
-| profile_image    |
-| banner           |
-| type             |
-| rating           |
-| created_at       |
+| birth_date       |        +------------------+
+| bio              |        |     ✅ Topic     |
+| profile_image    |        +------------------+
+| banner           |        | slug (PK)        |
+| type             |        | name             |
+| rating           |        | category_id (FK) |
+| created_at       |        +------------------+
 | updated_at       |
 +------------------+
          |1
@@ -23,7 +26,7 @@ Can be used also as an educational/teaching tool and invitations are sold if tea
          |
          |∞
 +------------------+
-|      Room        |
+|     ✅ Room      |
 +------------------+
 | uuid (PK)        |
 | name             |
@@ -38,29 +41,30 @@ Can be used also as an educational/teaching tool and invitations are sold if tea
 | created_at       |
 | updated_at       |
 +------------------+
-    |∞               |∞
-    |                |
-    |                |
-+--------+       +--------+
-|Room_Topic|     |Room_Category|
-+--------+       +--------+
-| room_id (FK)    | room_id (FK)
-| topic_id (FK)   | category_id (FK)
-+--------+       +--------+
+    |∞
+    |
+    |
++---------------+
+| ✅ Room_Topic |
++---------------+
+| room_id (FK)  |
+| topic_id (FK) |
++---------------+
+
+
++------------------+
+|    ✅ Message    |
++------------------+
+| id (PK)          |
+| context          |
+| room_id (FK)     |
+| user_id (FK)     |
+| created_at       |
+| updated_at       |
++------------------+
 
 +------------------+       +------------------+
-|      Topic       |       |     Message      |
-+------------------+       +------------------+
-| slug (PK)        |       | id (PK)          |
-| name             |       | context          |
-| category_id (FK) |       | room_id (FK)     |
-+------------------+       | user_id (FK)     |
-                           | created_at       |
-                           | updated_at       |
-                           +------------------+
-
-+------------------+       +------------------+
-|   Invitation     |       |   Transaction    |
+|  ✅ Invitation   |       |   Transaction    |
 +------------------+       +------------------+
 | uuid (PK)        |       | id (PK)          |
 | user_id (FK)     |       | user_id (FK)     |
