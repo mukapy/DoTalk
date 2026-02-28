@@ -1,0 +1,52 @@
+[
+  {
+    "model": "rooms.topic",
+    "pk": 1,
+    "fields": { "name": "Anime", "slug": "movies-anime", "category": 1 }
+  },
+  {
+    "model": "rooms.topic",
+    "pk": 2,
+    "fields": { "name": "Documentary", "slug": "movies-documentary", "category": 1 }
+  },
+  {
+    "model": "rooms.topic",
+    "pk": 3,
+    "fields": { "name": "Drama (Film)", "slug": "movies-drama", "category": 1 }
+  },
+  {
+    "model": "rooms.topic",
+    "pk": 4,
+    "fields": { "name": "Science Books", "slug": "books-science", "category": 2 }
+  },
+  {
+    "model": "rooms.topic",
+    "pk": 5,
+    "fields": { "name": "Comics & Manga", "slug": "books-comics", "category": 2 }
+  },
+  {
+    "model": "rooms.topic",
+    "pk": 6,
+    "fields": { "name": "Drama (Books)", "slug": "books-drama", "category": 2 }
+  },
+  {
+    "model": "rooms.topic",
+    "pk": 7,
+    "fields": { "name": "eSports", "slug": "gaming-esports", "category": 3 }
+  },
+  {
+    "model": "rooms.topic",
+    "pk": 8,
+    "fields": { "name": "RPG", "slug": "gaming-rpg", "category": 3 }
+  },
+  {
+    "model": "rooms.topic",
+    "pk": 9,
+    "fields": { "name": "Artificial Intelligence", "slug": "tech-ai", "category": 4 }
+  },
+  {
+    "model": "rooms.topic",
+    "pk": 10,
+    "fields": { "name": "Space Exploration", "slug": "science-space", "category": 4 }
+  }
+]

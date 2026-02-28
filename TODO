@@ -1,8 +1,30 @@
 0. Building models ✅
-1. Serializer + View (Category, Topic) + fixtures
-2. auth
-3. serializer, view room (CRUD)
+1. Serializer + View (Category, Topic) + fixtures ✅
+2. auth - via email ✅
 
+Register - Google auth (no email verification) ✅
+Register - frontend register form (email verification) ✅
+Login - email via google - automatic ✅
+Login - via login form, by email OR username (no verification)
+
+3. serializer, view room (CRUD)
+4. Resolve overlapping topics:
+
++-------------------+--------------------------+---------------------------+---------------------------+
+| Shared Topic      | Category: Media          | Category: Professional    | Category: Lifestyle       |
++-------------------+--------------------------+---------------------------+---------------------------+
+| CYBERPUNK         | Movies                   | Book                      | Gaming                    |
+| STRATEGY          | Gaming                   | Business                  | Sport                     |
+| SURVIVAL          | Movies                   | Science: Disaster Prep    | Gaming                    |
++-------------------+--------------------------+---------------------------+---------------------------+
+
+5. Profile update
+6. User change username / password / email
+7. Frontend main page
+8. Frontend room detail page
+9. Frontend Video chat / Voice chat
+
+https://w2g.tv/en/ - Video chat + movie
 
 apps/
 ├─ users/
