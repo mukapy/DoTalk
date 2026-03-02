@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { TrendingUp, Users, Flame, Video, Mic, MessageCircle } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { TrendingUp, Users, Flame, Video, Mic, MessageCircle, Hash } from "lucide-react";
 import api from "../api/axios";
-import type { Room, Category, PaginatedResponse } from "../types";
+import type { Room, Category, Topic, PaginatedResponse } from "../types";
 
 const typeIcon = {
   VIDEO: Video,
@@ -17,36 +17,79 @@ const typeStyle = {
 };
 
 export default function HomePage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [roomsLoading, setRoomsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const initialTopics = searchParams.get("topic")?.split(",") || [];
+    setSelectedTopics(initialTopics);
+
+    const fetchInitialData = async () => {
       try {
-        const [roomsRes, catsRes] = await Promise.all([
-          api.get<PaginatedResponse<Room> | Room[]>("rooms/"),
+        const [catsRes, topicsRes] = await Promise.all([
           api.get<PaginatedResponse<Category> | Category[]>("rooms/categories/"),
+          api.get<PaginatedResponse<Topic> | Topic[]>("rooms/topics/"),
         ]);
 
-        // Handle both paginated and non-paginated responses
-        const roomsData = Array.isArray(roomsRes.data)
-          ? roomsRes.data
-          : roomsRes.data.results;
         const catsData = Array.isArray(catsRes.data)
           ? catsRes.data
           : catsRes.data.results;
+        const topicsData = Array.isArray(topicsRes.data)
+          ? topicsRes.data
+          : topicsRes.data.results;
 
-        setRooms(roomsData);
         setCategories(catsData);
-      } catch {
-        // API not available, show empty state
+        setTopics(topicsData);
+      } catch (error) {
+        console.error("Failed to fetch initial data:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, []);
+    fetchInitialData();
+  }, [searchParams]);
+
+  useEffect(() => {
+    const fetchRooms = async () => {
+      setRoomsLoading(true);
+      try {
+        const topicQuery = selectedTopics.length > 0 ? `&topic=${selectedTopics.join(",")}` : "";
+        const roomsRes = await api.get<PaginatedResponse<Room> | Room[]>(`rooms/?${topicQuery}`);
+
+        const roomsData = Array.isArray(roomsRes.data)
+          ? roomsRes.data
+          : roomsRes.data.results;
+        setRooms(roomsData);
+      } catch (error) {
+        console.error("Failed to fetch rooms:", error);
+        setRooms([]);
+      } finally {
+        setRoomsLoading(false);
+      }
+    };
+    fetchRooms();
+  }, [selectedTopics]);
+
+  const handleTopicToggle = (topicSlug: string) => {
+    setSelectedTopics((prevSelectedTopics) => {
+      const newSelectedTopics = prevSelectedTopics.includes(topicSlug)
+        ? prevSelectedTopics.filter((slug) => slug !== topicSlug)
+        : [...prevSelectedTopics, topicSlug];
+
+      if (newSelectedTopics.length > 0) {
+        searchParams.set("topic", newSelectedTopics.join(","));
+      } else {
+        searchParams.delete("topic");
+      }
+      setSearchParams(searchParams);
+      return newSelectedTopics;
+    });
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -82,7 +125,7 @@ export default function HomePage() {
             <Flame size={20} className="text-orange-400" />
             <h2 className="text-lg font-semibold">Active Rooms</h2>
           </div>
-          {loading ? (
+          {roomsLoading ? (
             <div className="text-surface-500 text-sm">Loading rooms...</div>
           ) : rooms.length === 0 ? (
             <div className="bg-surface-900 border border-surface-700 rounded-xl p-6 text-center">
@@ -104,6 +147,17 @@ export default function HomePage() {
                           {room.category?.name}
                           {room.description && ` - ${room.description.slice(0, 60)}...`}
                         </p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {room.topic.map((t) => (
+                            <span
+                              key={t.id}
+                              className="px-2 py-1 bg-surface-800 rounded-full text-xs text-surface-300"
+                            >
+                              <Hash size={10} className="inline-block mr-1" />
+                              {t.name}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1 text-xs text-surface-400">
@@ -127,36 +181,83 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Categories sidebar */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-surface-200">
-            <TrendingUp size={20} className="text-primary-400" />
-            <h2 className="text-lg font-semibold">Categories</h2>
+        {/* Categories and Topics sidebar */}
+        <div className="space-y-6">
+          {/* Categories */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-surface-200">
+              <TrendingUp size={20} className="text-primary-400" />
+              <h2 className="text-lg font-semibold">Categories</h2>
+            </div>
+            {loading ? (
+              <div className="text-surface-500 text-sm">Loading...</div>
+            ) : categories.length === 0 ? (
+              <div className="bg-surface-900 border border-surface-700 rounded-xl p-4 text-center">
+                <p className="text-surface-400 text-sm">No categories yet</p>
+              </div>
+            ) : (
+              <div className="bg-surface-900 border border-surface-700 rounded-xl divide-y divide-surface-700">
+                {categories.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    to={`/explore?category=${cat.slug}`} // Link to explore page with category filter
+                    className="flex items-center gap-3 p-3 hover:bg-surface-800 transition-colors cursor-pointer first:rounded-t-xl last:rounded-b-xl no-underline"
+                  >
+                    <div className="flex-1">
+                      <p className="text-surface-200 font-medium text-sm">
+                        {cat.name}
+                      </p>
+                    </div>
+                    <MessageCircle size={16} className="text-surface-500" />
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
-          {loading ? (
-            <div className="text-surface-500 text-sm">Loading...</div>
-          ) : categories.length === 0 ? (
-            <div className="bg-surface-900 border border-surface-700 rounded-xl p-4 text-center">
-              <p className="text-surface-400 text-sm">No categories yet</p>
+
+          {/* Topics */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-surface-200">
+              <Hash size={20} className="text-blue-400" />
+              <h2 className="text-lg font-semibold">Topics</h2>
             </div>
-          ) : (
-            <div className="bg-surface-900 border border-surface-700 rounded-xl divide-y divide-surface-700">
-              {categories.map((cat) => (
-                <Link
-                  key={cat.id}
-                  to="/explore"
-                  className="flex items-center gap-3 p-3 hover:bg-surface-800 transition-colors cursor-pointer first:rounded-t-xl last:rounded-b-xl no-underline"
-                >
-                  <div className="flex-1">
-                    <p className="text-surface-200 font-medium text-sm">
-                      {cat.name}
-                    </p>
-                  </div>
-                  <MessageCircle size={16} className="text-surface-500" />
-                </Link>
-              ))}
-            </div>
-          )}
+            {loading ? (
+              <div className="text-surface-500 text-sm">Loading...</div>
+            ) : topics.length === 0 ? (
+              <div className="bg-surface-900 border border-surface-700 rounded-xl p-4 text-center">
+                <p className="text-surface-400 text-sm">No topics yet</p>
+              </div>
+            ) : (
+              <div className="bg-surface-900 border border-surface-700 rounded-xl p-4">
+                {topics.map((topic) => (
+                  <label
+                    key={topic.id}
+                    className="flex items-center gap-2 py-2 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedTopics.includes(topic.slug)}
+                      onChange={() => handleTopicToggle(topic.slug)}
+                      className="form-checkbox h-4 w-4 text-primary-600 rounded border-surface-600 focus:ring-primary-500 bg-surface-800"
+                    />
+                    <span className="text-surface-200 text-sm">{topic.name}</span>
+                  </label>
+                ))}
+                {selectedTopics.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setSelectedTopics([]);
+                      searchParams.delete("topic");
+                      setSearchParams(searchParams);
+                    }}
+                    className="mt-4 px-3 py-1 bg-surface-800 hover:bg-surface-700 text-surface-200 text-xs font-medium rounded-lg transition-colors cursor-pointer border border-surface-600 w-full"
+                  >
+                    Clear Topics
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

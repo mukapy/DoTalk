@@ -48,6 +48,7 @@ export interface Room {
   creator: number;
   description: string | null;
   image: string | null;
+  banner: string | null;
   status: 'upcoming' | 'active' | 'inactive';
   capacity: number;
   category: Category;
@@ -55,6 +56,19 @@ export interface Room {
   type: 'VIDEO' | 'VOICE' | 'CHAT';
   visibility: boolean;
   created_at: string;
+}
+
+export interface RoomFormData {
+  name: string;
+  description: string;
+  category: number | '';
+  topic: number[];
+  type: 'VIDEO' | 'VOICE' | 'CHAT';
+  capacity: number;
+  visibility: boolean;
+  status: 'upcoming' | 'active' | 'inactive';
+  image: File | null;
+  banner: File | null;
 }
 
 export interface Message {

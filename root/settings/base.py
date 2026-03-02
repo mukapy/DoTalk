@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'rooms',
 
     # Third party apps
+    'adrf',
     'rest_framework',
     'drf_spectacular',
     'rest_framework_simplejwt',
@@ -76,7 +77,7 @@ WSGI_APPLICATION = 'root.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('POSTGRES_NAME'),
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),

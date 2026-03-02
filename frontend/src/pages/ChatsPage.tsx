@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { MessageCircle, Video, Mic, Plus, Users } from "lucide-react";
 import api from "../api/axios";
 import type { Room, PaginatedResponse } from "../types";
@@ -21,6 +22,7 @@ export default function ChatsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>("all");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -57,10 +59,13 @@ export default function ChatsPage() {
             Browse and join available rooms
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer border-none">
+        <Link
+          to="/rooms/create"
+          className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer border-none no-underline"
+        >
           <Plus size={16} />
           New Room
-        </button>
+        </Link>
       </div>
 
       {/* Chat type filters */}
@@ -98,16 +103,25 @@ export default function ChatsPage() {
             return (
               <div
                 key={room.uuid}
+                onClick={() => navigate(`/rooms/${room.uuid}`)}
                 className="bg-surface-900 border border-surface-700 rounded-xl p-4 hover:border-surface-600 transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-4">
-                  <div
-                    className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      typeStyle[room.type] || "bg-blue-500/20 text-blue-400"
-                    }`}
-                  >
-                    <Icon size={20} />
-                  </div>
+                  {room.image ? (
+                    <img
+                      src={room.image}
+                      alt={room.name}
+                      className="w-10 h-10 rounded-lg object-cover shrink-0"
+                    />
+                  ) : (
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                        typeStyle[room.type] || "bg-blue-500/20 text-blue-400"
+                      }`}
+                    >
+                      <Icon size={20} />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <h3 className="text-surface-100 font-medium truncate">

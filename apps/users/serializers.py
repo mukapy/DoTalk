@@ -1,16 +1,17 @@
+import httpx
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
-from google.auth.transport import requests
-from google.oauth2 import id_token
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CharField, IntegerField
-from rest_framework.serializers import ModelSerializer, Serializer
+from adrf.serializers import Serializer, ModelSerializer
 from rest_framework_simplejwt.serializers import TokenObtainSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.models import User
 from users.tasks import register_key
+
+GOOGLE_TOKEN_INFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 
 
 class UserModelSerializer(ModelSerializer):
@@ -27,33 +28,33 @@ class UserRegisterModelSerializer(ModelSerializer):
         fields = ['email', 'code', 'password', 'username']
         extra_kwargs = {'email': {'write_only': True}}
 
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
+    async def validate_email(self, value):
+        if await User.objects.filter(email=value).aexists():
             raise ValidationError("Email already exists")
         return value
 
-    def validate_username(self, value):
-        if User.objects.filter(username=value).exists():
+    async def validate_username(self, value):
+        if await User.objects.filter(username=value).aexists():
             raise ValidationError("Username already exists")
         return value
 
-    def validate(self, attrs):
+    async def validate(self, attrs):
         email = attrs.get('email')
         code = attrs.get('code', None)
-        cache_code = cache.get(register_key(email))
+        cache_code = await cache.aget(register_key(email))
         if not cache_code or int(code) != int(cache_code):
             raise ValidationError({"code": "Wrong or expired code"})
         return attrs
 
-    def create(self, validated_data):
+    async def acreate(self, validated_data):
         validated_data.pop('code')
 
         password = validated_data.pop('password')
         validated_data['password'] = make_password(password)
 
-        user = User.objects.create(**validated_data)
+        user = await User.objects.acreate(**validated_data)
         user.first_name = f'user-{user.id}'
-        user.save(update_fields=['first_name'])
+        await user.asave(update_fields=['first_name'])
 
         self.user = user
         return user
@@ -70,19 +71,33 @@ class UserRegisterModelSerializer(ModelSerializer):
 class GoogleAuthSerializer(Serializer):
     token = CharField()
 
-    def validate_token(self, token):
+    async def validate_token(self, token):
         try:
-            idinfo = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_CLIENT_ID)
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    GOOGLE_TOKEN_INFO_URL,
+                    params={"id_token": token}
+                )
+
+            if response.status_code != 200:
+                raise ValidationError("Invalid Google token.")
+
+            idinfo = response.json()
+
+            if idinfo.get('aud') != settings.GOOGLE_CLIENT_ID:
+                raise ValidationError("Token audience mismatch.")
 
             email = idinfo.get('email')
             if not email:
                 raise ValidationError("Email not provided by Google.")
 
             return idinfo
+        except ValidationError:
+            raise
         except Exception as e:
             raise ValidationError(f"Invalid Google token: {str(e)}")
 
-    def create(self, validated_data):
+    async def acreate(self, validated_data):
         idinfo = validated_data['token']
         email = idinfo['email']
         given_name = idinfo.get('given_name', '')
@@ -92,11 +107,11 @@ class GoogleAuthSerializer(Serializer):
         base_username = email.split('@')[0]
         username = base_username
         counter = 1
-        while User.objects.filter(username=username).exists():
+        while await User.objects.filter(username=username).aexists():
             username = f"{base_username}{counter}"
             counter += 1
 
-        user, created = User.objects.get_or_create(
+        user, created = await User.objects.aget_or_create(
             email=email,
             defaults={
                 'username': username,
@@ -108,7 +123,7 @@ class GoogleAuthSerializer(Serializer):
 
         if created:
             user.set_unusable_password()
-            user.save()
+            await user.asave()
 
         self.user = user
         return user

@@ -1,8 +1,8 @@
+from adrf.generics import CreateAPIView, RetrieveAPIView
+from adrf.views import APIView
 from drf_spectacular.utils import extend_schema
-from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from users.models import User
@@ -40,8 +40,8 @@ class CustomTokenRefreshView(TokenRefreshView):
 class UserCheckEmailAPIView(APIView):
     permission_classes = [AllowAny]
 
-    def get(self, request, email):
-        is_exists = User.objects.filter(email=email).exists()
+    async def get(self, request, email):
+        is_exists = await User.objects.filter(email=email).aexists()
         if not is_exists:
             register_sms.delay(email)
 
@@ -53,5 +53,5 @@ class UserProfileRetrieveAPIView(RetrieveAPIView):
     serializer_class = UserModelSerializer
     permission_classes = [IsAuthenticated]
 
-    def get_object(self):
+    async def aget_object(self):
         return self.request.user
