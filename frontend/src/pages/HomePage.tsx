@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { TrendingUp, Users, Flame, Video, Mic, MessageCircle, Hash } from "lucide-react";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import { TrendingUp, Users, Flame, Video, Mic, MessageCircle, Hash, Filter } from "lucide-react";
 import api from "../api/axios";
 import type { Room, Category, Topic, PaginatedResponse } from "../types";
 
@@ -18,16 +18,20 @@ const typeStyle = {
 
 export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [roomsLoading, setRoomsLoading] = useState(true);
 
   useEffect(() => {
-    const initialTopics = searchParams.get("topic")?.split(",") || [];
+    const initialTopics = searchParams.get("topic")?.split(",").filter(Boolean) || [];
+    const initialCategory = searchParams.get("category");
     setSelectedTopics(initialTopics);
+    setSelectedCategory(initialCategory);
 
     const fetchInitialData = async () => {
       try {
@@ -58,8 +62,14 @@ export default function HomePage() {
     const fetchRooms = async () => {
       setRoomsLoading(true);
       try {
-        const topicQuery = selectedTopics.length > 0 ? `&topic=${selectedTopics.join(",")}` : "";
-        const roomsRes = await api.get<PaginatedResponse<Room> | Room[]>(`rooms/?${topicQuery}`);
+        const params = new URLSearchParams(searchParams.toString());
+        if (selectedTopics.length > 0) params.set("topic", selectedTopics.join(","));
+        else params.delete("topic");
+        
+        if (selectedCategory) params.set("category", selectedCategory);
+        else params.delete("category");
+
+        const roomsRes = await api.get<PaginatedResponse<Room> | Room[]>(`rooms/?${params.toString()}`);
 
         const roomsData = Array.isArray(roomsRes.data)
           ? roomsRes.data
@@ -73,23 +83,42 @@ export default function HomePage() {
       }
     };
     fetchRooms();
-  }, [selectedTopics]);
+  }, [searchParams, selectedTopics, selectedCategory]);
 
   const handleTopicToggle = (topicSlug: string) => {
-    setSelectedTopics((prevSelectedTopics) => {
-      const newSelectedTopics = prevSelectedTopics.includes(topicSlug)
-        ? prevSelectedTopics.filter((slug) => slug !== topicSlug)
-        : [...prevSelectedTopics, topicSlug];
-
-      if (newSelectedTopics.length > 0) {
-        searchParams.set("topic", newSelectedTopics.join(","));
-      } else {
-        searchParams.delete("topic");
-      }
-      setSearchParams(searchParams);
-      return newSelectedTopics;
-    });
+    const newSelectedTopics = selectedTopics.includes(topicSlug)
+      ? selectedTopics.filter((slug) => slug !== topicSlug)
+      : [...selectedTopics, topicSlug];
+    
+    setSelectedTopics(newSelectedTopics);
+    
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    if (newSelectedTopics.length > 0) {
+      newSearchParams.set("topic", newSelectedTopics.join(","));
+    } else {
+      newSearchParams.delete("topic");
+    }
+    setSearchParams(newSearchParams);
   };
+
+  const handleCategoryClick = (slug: string) => {
+    const newSelectedCategory = selectedCategory === slug ? null : slug;
+    setSelectedCategory(newSelectedCategory);
+
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    if (newSelectedCategory) {
+      newSearchParams.set("category", newSelectedCategory);
+    } else {
+      newSearchParams.delete("category");
+    }
+    setSearchParams(newSearchParams);
+  };
+  
+  const clearAllFilters = () => {
+    setSelectedTopics([]);
+    setSelectedCategory(null);
+    setSearchParams({});
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -129,7 +158,7 @@ export default function HomePage() {
             <div className="text-surface-500 text-sm">Loading rooms...</div>
           ) : rooms.length === 0 ? (
             <div className="bg-surface-900 border border-surface-700 rounded-xl p-6 text-center">
-              <p className="text-surface-400">No rooms available yet. Be the first to create one!</p>
+              <p className="text-surface-400">No rooms match your filters. Try clearing them or creating a new room!</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -138,6 +167,7 @@ export default function HomePage() {
                 return (
                   <div
                     key={room.uuid}
+                    onClick={() => navigate(`/rooms/${room.uuid}`)}
                     className="bg-surface-900 border border-surface-700 rounded-xl p-4 hover:border-surface-600 transition-colors cursor-pointer"
                   >
                     <div className="flex items-start justify-between">
@@ -185,9 +215,15 @@ export default function HomePage() {
         <div className="space-y-6">
           {/* Categories */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-surface-200">
-              <TrendingUp size={20} className="text-primary-400" />
-              <h2 className="text-lg font-semibold">Categories</h2>
+            <div className="flex items-center justify-between text-surface-200">
+              <div className="flex items-center gap-2">
+                <TrendingUp size={20} className="text-primary-400" />
+                <h2 className="text-lg font-semibold">Categories</h2>
+              </div>
+              <Link to="/advanced-filter" className="flex items-center gap-1 text-xs text-primary-400 hover:text-primary-300">
+                <Filter size={12} />
+                Advanced
+              </Link>
             </div>
             {loading ? (
               <div className="text-surface-500 text-sm">Loading...</div>
@@ -196,21 +232,25 @@ export default function HomePage() {
                 <p className="text-surface-400 text-sm">No categories yet</p>
               </div>
             ) : (
-              <div className="bg-surface-900 border border-surface-700 rounded-xl divide-y divide-surface-700">
-                {categories.map((cat) => (
-                  <Link
-                    key={cat.id}
-                    to={`/explore?category=${cat.slug}`} // Link to explore page with category filter
-                    className="flex items-center gap-3 p-3 hover:bg-surface-800 transition-colors cursor-pointer first:rounded-t-xl last:rounded-b-xl no-underline"
-                  >
-                    <div className="flex-1">
-                      <p className="text-surface-200 font-medium text-sm">
-                        {cat.name}
-                      </p>
+              <div className="bg-surface-900 border border-surface-700 rounded-xl max-h-60 overflow-y-auto">
+                <div className="divide-y divide-surface-700">
+                  {categories.map((cat) => (
+                    <div
+                      key={cat.id}
+                      onClick={() => handleCategoryClick(cat.slug)}
+                      className={`flex items-center gap-3 p-3 hover:bg-surface-800 transition-colors cursor-pointer first:rounded-t-xl last:rounded-b-xl ${
+                        selectedCategory === cat.slug ? "bg-surface-800 border-l-2 border-primary-500" : ""
+                      }`}
+                    >
+                      <div className="flex-1">
+                        <p className={`text-sm font-medium ${selectedCategory === cat.slug ? "text-primary-400" : "text-surface-200"}`}>
+                          {cat.name}
+                        </p>
+                      </div>
+                      <MessageCircle size={16} className={selectedCategory === cat.slug ? "text-primary-400" : "text-surface-500"} />
                     </div>
-                    <MessageCircle size={16} className="text-surface-500" />
-                  </Link>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -228,7 +268,7 @@ export default function HomePage() {
                 <p className="text-surface-400 text-sm">No topics yet</p>
               </div>
             ) : (
-              <div className="bg-surface-900 border border-surface-700 rounded-xl p-4">
+              <div className="bg-surface-900 border border-surface-700 rounded-xl p-4 max-h-60 overflow-y-auto">
                 {topics.map((topic) => (
                   <label
                     key={topic.id}
@@ -243,19 +283,15 @@ export default function HomePage() {
                     <span className="text-surface-200 text-sm">{topic.name}</span>
                   </label>
                 ))}
-                {selectedTopics.length > 0 && (
-                  <button
-                    onClick={() => {
-                      setSelectedTopics([]);
-                      searchParams.delete("topic");
-                      setSearchParams(searchParams);
-                    }}
-                    className="mt-4 px-3 py-1 bg-surface-800 hover:bg-surface-700 text-surface-200 text-xs font-medium rounded-lg transition-colors cursor-pointer border border-surface-600 w-full"
-                  >
-                    Clear Topics
-                  </button>
-                )}
               </div>
+            )}
+            {(selectedTopics.length > 0 || selectedCategory || searchParams.has("search") || searchParams.has("type") || searchParams.has("visibility")) && (
+              <button
+                onClick={clearAllFilters}
+                className="mt-4 px-3 py-1 bg-surface-800 hover:bg-surface-700 text-surface-200 text-xs font-medium rounded-lg transition-colors cursor-pointer border border-surface-600 w-full"
+              >
+                Clear All Filters
+              </button>
             )}
           </div>
         </div>

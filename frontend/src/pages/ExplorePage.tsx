@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Hash } from "lucide-react";
 import api from "../api/axios";
 import type { Category, Topic, PaginatedResponse } from "../types";
@@ -20,13 +21,18 @@ const colorPalette = [
 ];
 
 export default function ExplorePage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const initialCategory = searchParams.get("category");
+    setSelectedCategory(initialCategory);
+
     const fetchData = async () => {
       try {
         const [catsRes, topicsRes] = await Promise.all([
@@ -50,11 +56,24 @@ export default function ExplorePage() {
       }
     };
     fetchData();
-  }, []);
+  }, [searchParams]);
+
+  const handleCategoryClick = (slug: string) => {
+    if (selectedCategory === slug) {
+      setSelectedCategory(null);
+    } else {
+      setSelectedCategory(slug);
+    }
+  };
+
+  const handleTopicClick = (slug: string) => {
+    navigate(`/?topic=${slug}`);
+  };
 
   const filteredTopics = topics.filter((t) => {
     const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory === null || t.category === selectedCategory;
+    const categorySlug = categories.find(c => c.id === t.category)?.slug;
+    const matchesCategory = selectedCategory === null || categorySlug === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -97,15 +116,11 @@ export default function ExplorePage() {
               {categories.map((cat, i) => (
                 <div
                   key={cat.id}
-                  onClick={() =>
-                    setSelectedCategory(
-                      selectedCategory === cat.id ? null : cat.id
-                    )
-                  }
+                  onClick={() => handleCategoryClick(cat.slug)}
                   className={`bg-gradient-to-br ${
                     colorPalette[i % colorPalette.length]
                   } border rounded-xl p-5 hover:border-surface-500 transition-all cursor-pointer group ${
-                    selectedCategory === cat.id
+                    selectedCategory === cat.slug
                       ? "border-primary-500 ring-1 ring-primary-500"
                       : "border-surface-700"
                   }`}
@@ -148,6 +163,7 @@ export default function ExplorePage() {
                   return (
                     <div
                       key={topic.id}
+                      onClick={() => handleTopicClick(topic.slug)}
                       className="bg-surface-900 border border-surface-700 rounded-xl p-4 hover:border-surface-600 transition-colors cursor-pointer"
                     >
                       <h3 className="text-surface-100 font-medium">{topic.name}</h3>

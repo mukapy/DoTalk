@@ -12,6 +12,7 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import RoomDetailPage from "../pages/RoomDetailPage";
 import RoomFormPage from "../pages/RoomFormPage";
+import AdvancedFilterPage from "../pages/AdvancedFilterPage";
 
 export const router = createBrowserRouter([
   // Auth routes (guest only)
@@ -43,6 +44,7 @@ export const router = createBrowserRouter([
           { path: "/rooms/:uuid/edit", element: <RoomFormPage /> },
           { path: "/profile", element: <ProfilePage /> },
           { path: "/settings", element: <SettingsPage /> },
+          { path: "/advanced-filter", element: <AdvancedFilterPage /> },
         ],
       },
     ],
