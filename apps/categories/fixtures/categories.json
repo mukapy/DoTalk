@@ -1,26 +1,26 @@
 [
   {
-    "model": "rooms.category",
+    "model": "categories.category",
     "pk": 1,
     "fields": { "name": "Movies & Cinema", "slug": "movies-cinema" }
   },
   {
-    "model": "rooms.category",
+    "model": "categories.category",
     "pk": 2,
     "fields": { "name": "Books & Literature", "slug": "books-literature" }
   },
   {
-    "model": "rooms.category",
+    "model": "categories.category",
     "pk": 3,
     "fields": { "name": "Gaming", "slug": "gaming" }
   },
   {
-    "model": "rooms.category",
+    "model": "categories.category",
     "pk": 4,
     "fields": { "name": "Science & Tech", "slug": "science-tech" }
   },
   {
-    "model": "rooms.category",
+    "model": "categories.category",
     "pk": 5,
     "fields": { "name": "Art & Design", "slug": "art-design" }
   }

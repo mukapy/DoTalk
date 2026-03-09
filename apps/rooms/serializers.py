@@ -3,23 +3,12 @@ import os
 from adrf.serializers import ModelSerializer
 from rest_framework.fields import ImageField as DRFImageField
 
-from rooms.models import Category, Topic, Room
+from rooms.models import Room
+from categories.serializers import CategoryModelSerializer, TopicModelSerializer
 from shared.utils import convert_to_webp
 
 ROOM_IMAGE_SIZE = (400, 400)
 ROOM_BANNER_SIZE = (1200, 400)
-
-
-class CategoryModelSerializer(ModelSerializer):
-    class Meta:
-        model = Category
-        fields = '__all__'
-
-
-class TopicModelSerializer(ModelSerializer):
-    class Meta:
-        model = Topic
-        fields = '__all__'
 
 
 class RoomModelSerializer(ModelSerializer):

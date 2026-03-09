@@ -1,20 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 
-from rooms.models import Room, Category, Topic, Invitation, Message
-
-
-@admin.register(Category)
-class CategoryAdmin(ModelAdmin):
-    list_display = ('name', 'slug')
-    search_fields = ('name',)
-
-
-@admin.register(Topic)
-class TopicAdmin(ModelAdmin):
-    list_display = ('name', 'slug', 'category')
-    list_filter = ('category',)
-    search_fields = ('name',)
+from rooms.models import Room, Invitation, Message
 
 
 @admin.register(Room)

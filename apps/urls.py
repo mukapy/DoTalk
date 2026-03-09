@@ -5,4 +5,5 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('rooms/', include('rooms.urls')),
     path('posts/', include('posts.urls')),
+    path('', include('categories.urls')),
 ]

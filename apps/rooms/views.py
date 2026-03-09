@@ -6,8 +6,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from rooms.filters import RoomFilter
-from rooms.models import Room, Category, Topic
-from rooms.serializers import RoomModelSerializer, RoomWriteSerializer, CategoryModelSerializer, TopicModelSerializer
+from rooms.models import Room
+from rooms.serializers import RoomModelSerializer, RoomWriteSerializer
 
 
 @extend_schema(tags=['rooms'])
@@ -74,17 +74,3 @@ class RoomDeleteAPIView(DestroyAPIView):
                 except Exception:
                     pass
         await instance.adelete()
-
-
-@extend_schema(tags=['rooms'])
-class CategoryListAPIView(ListAPIView):
-    serializer_class = CategoryModelSerializer
-    queryset = Category.objects.all()
-    permission_classes = [AllowAny]
-
-
-@extend_schema(tags=['rooms'])
-class TopicListAPIView(ListAPIView):
-    serializer_class = TopicModelSerializer
-    queryset = Topic.objects.all()
-    permission_classes = [AllowAny]

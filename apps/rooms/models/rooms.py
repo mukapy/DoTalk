@@ -26,8 +26,8 @@ class Room(CreatedUUIDBaseModel):
     capacity = PositiveSmallIntegerField(validators=[MinValueValidator(2), MaxValueValidator(15)])
     type = CharField(max_length=10, choices=Type.choices, default=Type.VIDEO)
     visibility = BooleanField(default=True)
-    category = ForeignKey('rooms.Category', CASCADE, related_name='rooms')
-    topic = ManyToManyField('rooms.Topic')
+    category = ForeignKey('categories.Category', CASCADE, related_name='rooms')
+    topic = ManyToManyField('categories.Topic')
 
 
 class Invitation(CreatedUUIDBaseModel):

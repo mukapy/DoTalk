@@ -7,6 +7,18 @@ from dotenv import load_dotenv
 load_dotenv('.env')
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+def is_in_docker():
+    return os.path.exists('/.dockerenv')
+
+MODE = os.getenv('MODE', 'dev')
+
+if not is_in_docker():
+    if MODE == 'dev':
+        load_dotenv(os.path.join(BASE_DIR, '.env.dev'))
+    elif MODE == 'prod':
+        load_dotenv(os.path.join(BASE_DIR, '.env.prod'))
+
 sys.path.append(os.path.join(BASE_DIR, 'apps'))
 
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -24,6 +36,7 @@ INSTALLED_APPS = [
     'payments',
     'posts',
     'shared',
+    'categories',
     'rooms',
 
     # Third party apps

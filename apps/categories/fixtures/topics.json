@@ -1,0 +1,52 @@
+[
+  {
+    "model": "categories.topic",
+    "pk": 1,
+    "fields": { "name": "Anime", "slug": "anime" }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 2,
+    "fields": { "name": "Documentary", "slug": "documentary" }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 3,
+    "fields": { "name": "Drama (Film)", "slug": "drama-film" }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 4,
+    "fields": { "name": "Science Books", "slug": "science-books" }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 5,
+    "fields": { "name": "Comics & Manga", "slug": "comics-manga" }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 6,
+    "fields": { "name": "Drama (Books)", "slug": "drama-books" }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 7,
+    "fields": { "name": "eSports", "slug": "esports" }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 8,
+    "fields": { "name": "RPG", "slug": "rpg" }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 9,
+    "fields": { "name": "Artificial Intelligence", "slug": "artificial-intelligence" }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 10,
+    "fields": { "name": "Space Exploration", "slug": "space-exploration" }
+  }
+]

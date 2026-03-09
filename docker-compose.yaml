@@ -27,9 +27,10 @@ services:
 
   backend:
     build: .
-    command: uv run uvicorn root.asgi:application --host 0.0.0.0 --port 8000
+    command: uv run gunicorn root.asgi:application -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --workers 4
     volumes:
       - .:/app
+      - /app/.venv
       - media_data:/app/media
     ports:
       - "8000:8000"
@@ -49,6 +50,7 @@ services:
     command: uv run celery -A root worker -l info
     volumes:
       - .:/app
+      - /app/.venv
     env_file:
       - .env
     environment:

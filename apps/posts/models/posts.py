@@ -20,8 +20,8 @@ class Post(CreatedBaseModel):
     content_rating = CharField(max_length=20, choices=ContentRating.choices, default=ContentRating.SAFE)
     moderation_status = CharField(max_length=20, choices=ModerationStatus.choices, default=ModerationStatus.PENDING)
     age_restricted = BooleanField(default=False)
-    topic = ManyToManyField('rooms.Topic', related_name='posts')
-    category = ManyToManyField('rooms.Category', related_name='posts')
+    topic = ManyToManyField('categories.Topic', related_name='posts')
+    category = ManyToManyField('categories.Category', related_name='posts')
 
 
 class PostMedia(CreatedBaseModel):
