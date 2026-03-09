@@ -19,6 +19,9 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Mutex for token refresh — prevents parallel 401s from triggering multiple refreshes
+let refreshPromise: Promise<string> | null = null;
+
 // Response interceptor: handle 401 token refresh
 api.interceptors.response.use(
   (response) => response,
@@ -29,21 +32,36 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       const refreshToken = localStorage.getItem("refresh_token");
-      if (refreshToken) {
-        try {
-          const response = await axios.post(
-            `${api.defaults.baseURL}users/auth/token/refresh/`,
-            { refresh: refreshToken }
-          );
-          const { access } = response.data;
-          localStorage.setItem("access_token", access);
-          originalRequest.headers.Authorization = `Bearer ${access}`;
-          return api(originalRequest);
-        } catch {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
-          window.location.href = "/login";
+      if (!refreshToken) {
+        return Promise.reject(error);
+      }
+
+      try {
+        // If a refresh is already in flight, wait for it
+        if (!refreshPromise) {
+          refreshPromise = axios
+            .post(`${api.defaults.baseURL}users/auth/token/refresh/`, {
+              refresh: refreshToken,
+            })
+            .then((response) => {
+              const { access, refresh } = response.data;
+              localStorage.setItem("access_token", access);
+              if (refresh) {
+                localStorage.setItem("refresh_token", refresh);
+              }
+              return access as string;
+            });
         }
+
+        const access = await refreshPromise;
+        originalRequest.headers.Authorization = `Bearer ${access}`;
+        return api(originalRequest);
+      } catch {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        window.location.href = "/login";
+      } finally {
+        refreshPromise = null;
       }
     }
 

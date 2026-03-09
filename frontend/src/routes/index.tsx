@@ -7,6 +7,8 @@ import HomePage from "../pages/HomePage";
 import ExplorePage from "../pages/ExplorePage";
 import ChatsPage from "../pages/ChatsPage";
 import ProfilePage from "../pages/ProfilePage";
+import EditProfilePage from "../pages/EditProfilePage";
+import ChangePasswordPage from "../pages/ChangePasswordPage";
 import SettingsPage from "../pages/SettingsPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
@@ -43,7 +45,9 @@ export const router = createBrowserRouter([
           { path: "/rooms/:uuid", element: <RoomDetailPage /> },
           { path: "/rooms/:uuid/edit", element: <RoomFormPage /> },
           { path: "/profile", element: <ProfilePage /> },
+          { path: "/profile/edit", element: <EditProfilePage /> },
           { path: "/settings", element: <SettingsPage /> },
+          { path: "/settings/change-password", element: <ChangePasswordPage /> },
           { path: "/advanced-filter", element: <AdvancedFilterPage /> },
         ],
       },

@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Hash } from "lucide-react";
 import api from "../api/axios";
-import type { Category, Topic, PaginatedResponse } from "../types";
+import type { Category, Topic, Room } from "../types";
 
 // Color palette for categories
 const colorPalette = [
@@ -25,30 +25,45 @@ export default function ExplorePage() {
   const [searchParams] = useSearchParams();
   const [categories, setCategories] = useState<Category[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const initialCategory = searchParams.get("category");
-    setSelectedCategory(initialCategory);
+  // Create a map of topicId -> categoryId from the rooms data
+  const topicCategoryMap = useMemo(() => {
+    const map = new Map<number, number>();
+    rooms.forEach(room => {
+      room.topic.forEach(topic => {
+        if (!map.has(topic.id)) {
+          map.set(topic.id, room.category.id);
+        }
+      });
+    });
+    return map;
+  }, [rooms]);
 
+  useEffect(() => {
     const fetchData = async () => {
       try {
-        const [catsRes, topicsRes] = await Promise.all([
-          api.get<PaginatedResponse<Category> | Category[]>("rooms/categories/"),
-          api.get<PaginatedResponse<Topic> | Topic[]>("rooms/topics/"),
+        const [catsRes, topicsRes, roomsRes] = await Promise.all([
+          api.get<Category[]>("categories/"),
+          api.get<Topic[]>("topics/"),
+          api.get<Room[]>("rooms/"),
         ]);
 
-        const catsData = Array.isArray(catsRes.data)
-          ? catsRes.data
-          : catsRes.data.results;
-        const topicsData = Array.isArray(topicsRes.data)
-          ? topicsRes.data
-          : topicsRes.data.results;
+        setCategories(catsRes.data);
+        setTopics(topicsRes.data);
+        setRooms(roomsRes.data);
 
-        setCategories(catsData);
-        setTopics(topicsData);
+        // Handle initial category selection from URL after data is fetched
+        const initialCategorySlug = searchParams.get("category");
+        if (initialCategorySlug) {
+          const category = catsRes.data.find(c => c.slug === initialCategorySlug);
+          if (category) {
+            setSelectedCategory(category.id);
+          }
+        }
       } catch {
         // API not available
       } finally {
@@ -58,11 +73,11 @@ export default function ExplorePage() {
     fetchData();
   }, [searchParams]);
 
-  const handleCategoryClick = (slug: string) => {
-    if (selectedCategory === slug) {
+  const handleCategoryClick = (id: number) => {
+    if (selectedCategory === id) {
       setSelectedCategory(null);
     } else {
-      setSelectedCategory(slug);
+      setSelectedCategory(id);
     }
   };
 
@@ -72,13 +87,26 @@ export default function ExplorePage() {
 
   const filteredTopics = topics.filter((t) => {
     const matchesSearch = t.name.toLowerCase().includes(search.toLowerCase());
-    const categorySlug = categories.find(c => c.id === t.category)?.slug;
-    const matchesCategory = selectedCategory === null || categorySlug === selectedCategory;
+    if (selectedCategory === null) {
+      return matchesSearch;
+    }
+    const topicCategoryId = topicCategoryMap.get(t.id);
+    const matchesCategory = topicCategoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const getTopicCount = (categoryId: number) =>
-    topics.filter((t) => t.category === categoryId).length;
+  const getTopicCount = (categoryId: number) => {
+    let count = 0;
+    topicCategoryMap.forEach((catId, topicId) => {
+      if (catId === categoryId) {
+        // Make sure the topic actually exists in our topics list
+        if (topics.some(t => t.id === topicId)) {
+          count++;
+        }
+      }
+    });
+    return count;
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -116,11 +144,11 @@ export default function ExplorePage() {
               {categories.map((cat, i) => (
                 <div
                   key={cat.id}
-                  onClick={() => handleCategoryClick(cat.slug)}
+                  onClick={() => handleCategoryClick(cat.id)}
                   className={`bg-gradient-to-br ${
                     colorPalette[i % colorPalette.length]
                   } border rounded-xl p-5 hover:border-surface-500 transition-all cursor-pointer group ${
-                    selectedCategory === cat.slug
+                    selectedCategory === cat.id
                       ? "border-primary-500 ring-1 ring-primary-500"
                       : "border-surface-700"
                   }`}
@@ -159,7 +187,8 @@ export default function ExplorePage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {filteredTopics.map((topic) => {
-                  const cat = categories.find((c) => c.id === topic.category);
+                  const catId = topicCategoryMap.get(topic.id);
+                  const cat = categories.find((c) => c.id === catId);
                   return (
                     <div
                       key={topic.id}

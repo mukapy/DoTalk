@@ -2,26 +2,161 @@
   {
     "model": "categories.category",
     "pk": 1,
-    "fields": { "name": "Movies & Cinema", "slug": "movies-cinema" }
+    "fields": {
+      "name": "Music",
+      "slug": "music"
+    }
   },
   {
     "model": "categories.category",
     "pk": 2,
-    "fields": { "name": "Books & Literature", "slug": "books-literature" }
+    "fields": {
+      "name": "Gaming",
+      "slug": "gaming"
+    }
   },
   {
     "model": "categories.category",
     "pk": 3,
-    "fields": { "name": "Gaming", "slug": "gaming" }
+    "fields": {
+      "name": "Anime & Manga",
+      "slug": "anime-manga"
+    }
   },
   {
     "model": "categories.category",
     "pk": 4,
-    "fields": { "name": "Science & Tech", "slug": "science-tech" }
+    "fields": {
+      "name": "Films & Cinema",
+      "slug": "films-cinema"
+    }
   },
   {
     "model": "categories.category",
     "pk": 5,
-    "fields": { "name": "Art & Design", "slug": "art-design" }
+    "fields": {
+      "name": "TV & Series",
+      "slug": "tv-series"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 6,
+    "fields": {
+      "name": "Books & Reading",
+      "slug": "books-reading"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 7,
+    "fields": {
+      "name": "Art & Design",
+      "slug": "art-design"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 8,
+    "fields": {
+      "name": "Photography",
+      "slug": "photography"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 9,
+    "fields": {
+      "name": "Sports",
+      "slug": "sports"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 10,
+    "fields": {
+      "name": "Fitness & Health",
+      "slug": "fitness-health"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 11,
+    "fields": {
+      "name": "Travel",
+      "slug": "travel"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 12,
+    "fields": {
+      "name": "Food & Cooking",
+      "slug": "food-cooking"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 13,
+    "fields": {
+      "name": "Technology",
+      "slug": "technology"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 14,
+    "fields": {
+      "name": "Science",
+      "slug": "science"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 15,
+    "fields": {
+      "name": "Fashion & Style",
+      "slug": "fashion-style"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 16,
+    "fields": {
+      "name": "Pets & Animals",
+      "slug": "pets-animals"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 17,
+    "fields": {
+      "name": "Cars & Automotive",
+      "slug": "cars-automotive"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 18,
+    "fields": {
+      "name": "Outdoors & Nature",
+      "slug": "outdoors-nature"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 19,
+    "fields": {
+      "name": "DIY & Crafts",
+      "slug": "diy-crafts"
+    }
+  },
+  {
+    "model": "categories.category",
+    "pk": 20,
+    "fields": {
+      "name": "Lifestyle & Personal Development",
+      "slug": "lifestyle-personal-development"
+    }
   }
 ]

@@ -1,8 +1,10 @@
 import { Edit3, UserPlus, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 
 export default function ProfilePage() {
   const user = useAuthStore((s) => s.user);
+  const navigate = useNavigate();
 
   const displayName = user?.username || user?.first_name || user?.email?.split("@")[0] || "User";
   const initial = displayName.charAt(0).toUpperCase();
@@ -12,7 +14,15 @@ export default function ProfilePage() {
       {/* Profile header */}
       <div className="bg-surface-900 border border-surface-700 rounded-2xl overflow-hidden">
         {/* Banner */}
-        <div className="h-32 bg-gradient-to-r from-primary-600 to-accent" />
+        {user?.banner ? (
+          <img
+            src={user.banner}
+            alt="Profile banner"
+            className="w-full h-32 object-cover"
+          />
+        ) : (
+          <div className="h-32 bg-gradient-to-r from-primary-600 to-accent" />
+        )}
 
         <div className="px-6 pb-6">
           {/* Avatar + actions */}
@@ -29,11 +39,17 @@ export default function ProfilePage() {
               )}
             </div>
             <div className="flex gap-2 mt-4">
-              <button className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-800 hover:bg-surface-700 text-surface-200 text-sm rounded-lg transition-colors cursor-pointer border border-surface-600">
+              <button
+                onClick={() => navigate("/profile/edit")}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-800 hover:bg-surface-700 text-surface-200 text-sm rounded-lg transition-colors cursor-pointer border border-surface-600"
+              >
                 <Edit3 size={14} />
                 Edit Profile
               </button>
-              <button className="p-1.5 bg-surface-800 hover:bg-surface-700 text-surface-400 rounded-lg transition-colors cursor-pointer border border-surface-600">
+              <button
+                onClick={() => navigate("/settings")}
+                className="p-1.5 bg-surface-800 hover:bg-surface-700 text-surface-400 rounded-lg transition-colors cursor-pointer border border-surface-600"
+              >
                 <Settings size={16} />
               </button>
             </div>

@@ -14,6 +14,7 @@ class Post(CreatedBaseModel):
         PENDING = "pending"
         REJECTED = "rejected"
 
+    author = ForeignKey('users.User', CASCADE, related_name='posts')
     name = CharField(max_length=255)
     description = TextField()
     is_spoiler = BooleanField(default=False)
@@ -59,3 +60,4 @@ class CommentVote(CreatedBaseModel):
 
     comment = ForeignKey('posts.Comment', CASCADE, related_name='comment_votes')
     user = ForeignKey('users.User', CASCADE, related_name='comment_votes')
+    type = CharField(max_length=20, choices=Type.choices)

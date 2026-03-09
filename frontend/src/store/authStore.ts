@@ -50,7 +50,17 @@ interface AuthState {
   // Fetch user profile
   fetchProfile: () => Promise<void>;
 
-  logout: () => void;
+  // Update user profile
+  updateProfile: (data: FormData) => Promise<void>;
+
+  // Change password
+  changePassword: (data: {
+    old_password: string;
+    password: string;
+    confirm_password: string;
+  }) => Promise<void>;
+
+  logout: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -138,11 +148,52 @@ export const useAuthStore = create<AuthState>((set) => ({
       const response = await api.get<User>("users/profile/me/");
       set({ user: response.data });
     } catch {
-      // If fetching profile fails, user might have an expired token
+      // If fetching profile fails after token refresh attempts, the user's session is invalid
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      set({ user: null, isAuthenticated: false });
     }
   },
 
-  logout: () => {
+  updateProfile: async (data: FormData) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await api.patch<User>("users/profile/update/", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      set({ user: response.data, isLoading: false });
+    } catch (err) {
+      set({
+        error: extractErrorMessage(err, "Failed to update profile. Please try again."),
+        isLoading: false,
+      });
+      throw err;
+    }
+  },
+
+  changePassword: async (data) => {
+    set({ isLoading: true, error: null });
+    try {
+      await api.patch("users/profile/change-password/", data);
+      set({ isLoading: false });
+    } catch (err) {
+      set({
+        error: extractErrorMessage(err, "Failed to change password. Please try again."),
+        isLoading: false,
+      });
+      throw err;
+    }
+  },
+
+  logout: async () => {
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (refreshToken) {
+      try {
+        await api.post("users/auth/logout/", { refresh: refreshToken });
+      } catch {
+        // Best-effort server-side blacklist; clear client state regardless
+      }
+    }
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     set({ user: null, isAuthenticated: false });

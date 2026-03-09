@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Hash } from "lucide-react";
+import { Search, Hash, Plus, ChevronDown } from "lucide-react";
 import api from "../api/axios";
-import type { Category, Topic, PaginatedResponse } from "../types";
+import type { Category, Topic } from "../types";
+
+const TOPICS_TO_SHOW_INITIALLY = 8; // Adjust this number to control how many topics appear in the first two rows
 
 export default function AdvancedFilterPage() {
   const navigate = useNavigate();
@@ -11,29 +13,32 @@ export default function AdvancedFilterPage() {
   const [roomType, setRoomType] = useState<string | null>(searchParams.get("type"));
   const [categories, setCategories] = useState<Category[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get("category"));
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get("category") || null);
   const [selectedTopics, setSelectedTopics] = useState<string[]>(searchParams.get("topic")?.split(",").filter(Boolean) || []);
   const [loading, setLoading] = useState(true);
+  const [showNewTopicForm, setShowNewTopicForm] = useState(false);
+  const [newTopicName, setNewTopicName] = useState("");
+  const [isSubmittingTopic, setIsSubmittingTopic] = useState(false);
+  const [isTopicsExpanded, setIsTopicsExpanded] = useState(false);
+
+  const fetchTopics = async () => {
+    try {
+      const topicsRes = await api.get<Topic[]>("topics/");
+      setTopics(topicsRes.data);
+    } catch (error) {
+      console.error("Failed to fetch topics:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const [catsRes, topicsRes] = await Promise.all([
-          api.get<PaginatedResponse<Category> | Category[]>("rooms/categories/"),
-          api.get<PaginatedResponse<Topic> | Topic[]>("rooms/topics/"),
-        ]);
-
-        const catsData = Array.isArray(catsRes.data)
-          ? catsRes.data
-          : catsRes.data.results;
-        const topicsData = Array.isArray(topicsRes.data)
-          ? topicsRes.data
-          : topicsRes.data.results;
-
-        setCategories(catsData);
-        setTopics(topicsData);
+        const catsRes = await api.get<Category[]>("categories/");
+        setCategories(catsRes.data);
+        await fetchTopics();
       } catch (error) {
-        console.error("Failed to fetch data:", error);
+        console.error("Failed to fetch initial data:", error);
       } finally {
         setLoading(false);
       }
@@ -44,10 +49,8 @@ export default function AdvancedFilterPage() {
   const handleCategoryChange = (slug: string) => {
     if (selectedCategory === slug) {
       setSelectedCategory(null);
-      setSelectedTopics([]); // Reset topics when category is deselected
     } else {
       setSelectedCategory(slug);
-      setSelectedTopics([]); // Reset topics when a new category is selected
     }
   };
 
@@ -55,6 +58,25 @@ export default function AdvancedFilterPage() {
     setSelectedTopics((prev) =>
       prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]
     );
+  };
+
+  const handleAddNewTopic = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTopicName.trim()) return;
+
+    setIsSubmittingTopic(true);
+    try {
+      const response = await api.post<Topic>("topics/", { name: newTopicName });
+      setTopics((prev) => [...prev, response.data]);
+      setSelectedTopics((prev) => [...prev, response.data.slug]);
+      setNewTopicName("");
+      setShowNewTopicForm(false);
+    } catch (error) {
+      console.error("Failed to create topic:", error);
+      // Optionally, show an error message to the user
+    } finally {
+      setIsSubmittingTopic(false);
+    }
   };
 
   const handleSearch = () => {
@@ -66,9 +88,7 @@ export default function AdvancedFilterPage() {
     navigate(`/?${params.toString()}`);
   };
 
-  const filteredTopics = selectedCategory
-    ? topics.filter((t) => categories.find(c => c.slug === selectedCategory)?.id === t.category)
-    : [];
+  const visibleTopics = isTopicsExpanded ? topics : topics.slice(0, TOPICS_TO_SHOW_INITIALLY);
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -125,7 +145,7 @@ export default function AdvancedFilterPage() {
         {/* Filter by category */}
         <div>
           <label className="block text-sm font-medium text-surface-300 mb-1.5">
-            Category
+            Category (select one)
           </label>
           {loading ? <div className="text-sm text-surface-500">Loading categories...</div> : (
             <div className="flex flex-wrap gap-3">
@@ -147,14 +167,41 @@ export default function AdvancedFilterPage() {
         </div>
 
         {/* Filter by topics */}
-        {selectedCategory && (
-          <div>
-            <label className="block text-sm font-medium text-surface-300 mb-1.5">
-              Topics
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-sm font-medium text-surface-300">
+              Topics (select many)
             </label>
-            {loading ? <div className="text-sm text-surface-500">Loading topics...</div> : (
+            <button
+              onClick={() => setShowNewTopicForm(!showNewTopicForm)}
+              className="flex items-center gap-1 text-xs text-primary-400 hover:text-primary-300"
+            >
+              <Plus size={14} />
+              Enhance
+            </button>
+          </div>
+          {showNewTopicForm && (
+            <form onSubmit={handleAddNewTopic} className="flex gap-2 mb-3">
+              <input
+                type="text"
+                value={newTopicName}
+                onChange={(e) => setNewTopicName(e.target.value)}
+                placeholder="Enter new topic name"
+                className="flex-grow px-3 py-2 bg-surface-800 border border-surface-600 rounded-lg text-sm text-surface-100 focus:outline-none focus:border-primary-500"
+              />
+              <button
+                type="submit"
+                disabled={isSubmittingTopic}
+                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg disabled:opacity-50"
+              >
+                {isSubmittingTopic ? "Adding..." : "Add"}
+              </button>
+            </form>
+          )}
+          {loading ? <div className="text-sm text-surface-500">Loading topics...</div> : (
+            <>
               <div className="flex flex-wrap gap-3">
-                {filteredTopics.length > 0 ? filteredTopics.map((topic) => (
+                {visibleTopics.length > 0 ? visibleTopics.map((topic) => (
                   <button
                     key={topic.id}
                     onClick={() => handleTopicToggle(topic.slug)}
@@ -167,11 +214,22 @@ export default function AdvancedFilterPage() {
                     <Hash size={12} />
                     {topic.name}
                   </button>
-                )) : <p className="text-sm text-surface-500">No topics for this category.</p>}
+                )) : <p className="text-sm text-surface-500">No topics available.</p>}
               </div>
-            )}
-          </div>
-        )}
+              {topics.length > TOPICS_TO_SHOW_INITIALLY && (
+                <div className="text-center mt-3">
+                  <button
+                    onClick={() => setIsTopicsExpanded(!isTopicsExpanded)}
+                    className="flex items-center gap-1 text-xs text-primary-400 hover:text-primary-300"
+                  >
+                    <ChevronDown size={14} className={`transition-transform ${isTopicsExpanded ? 'rotate-180' : ''}`} />
+                    {isTopicsExpanded ? "Pull up" : "Pull down"}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* Apply button */}
         <div className="pt-4">

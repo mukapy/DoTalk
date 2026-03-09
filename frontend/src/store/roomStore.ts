@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Room, Category, Topic, PaginatedResponse } from "../types";
+import type { Room, Category, Topic } from "../types";
 import api from "../api/axios";
 import type { AxiosError } from "axios";
 
@@ -49,9 +49,8 @@ export const useRoomStore = create<RoomState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const params = topicSlugs?.length ? `?topic=${topicSlugs.join(",")}` : "";
-      const res = await api.get<PaginatedResponse<Room> | Room[]>(`rooms/${params}`);
-      const data = Array.isArray(res.data) ? res.data : res.data.results;
-      set({ rooms: data, isLoading: false });
+      const res = await api.get<Room[]>(`rooms/${params}`);
+      set({ rooms: res.data, isLoading: false });
     } catch (err) {
       set({ error: extractErrorMessage(err, "Failed to fetch rooms"), isLoading: false });
     }
@@ -70,7 +69,7 @@ export const useRoomStore = create<RoomState>((set) => ({
   createRoom: async (formData) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await api.post<Room>("rooms/create/", formData, {
+      const res = await api.post<Room>("rooms/", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       set((state) => ({
@@ -87,7 +86,7 @@ export const useRoomStore = create<RoomState>((set) => ({
   updateRoom: async (uuid, formData) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await api.patch<Room>(`rooms/${uuid}/update/`, formData, {
+      const res = await api.patch<Room>(`rooms/${uuid}/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       set((state) => ({
@@ -105,7 +104,7 @@ export const useRoomStore = create<RoomState>((set) => ({
   deleteRoom: async (uuid) => {
     set({ isLoading: true, error: null });
     try {
-      await api.delete(`rooms/${uuid}/delete/`);
+      await api.delete(`rooms/${uuid}/`);
       set((state) => ({
         rooms: state.rooms.filter((r) => r.uuid !== uuid),
         currentRoom: null,
@@ -119,9 +118,8 @@ export const useRoomStore = create<RoomState>((set) => ({
 
   fetchCategories: async () => {
     try {
-      const res = await api.get<PaginatedResponse<Category> | Category[]>("rooms/categories/");
-      const data = Array.isArray(res.data) ? res.data : res.data.results;
-      set({ categories: data });
+      const res = await api.get<Category[]>("categories/");
+      set({ categories: res.data });
     } catch {
       // silent
     }
@@ -129,9 +127,8 @@ export const useRoomStore = create<RoomState>((set) => ({
 
   fetchTopics: async () => {
     try {
-      const res = await api.get<PaginatedResponse<Topic> | Topic[]>("rooms/topics/");
-      const data = Array.isArray(res.data) ? res.data : res.data.results;
-      set({ topics: data });
+      const res = await api.get<Topic[]>("topics/");
+      set({ topics: res.data });
     } catch {
       // silent
     }

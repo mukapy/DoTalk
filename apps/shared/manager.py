@@ -5,7 +5,8 @@ class UserManager(BaseUserManager):
 
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("The email number must be set")
+            raise ValueError("The email must be set")
+        email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -13,7 +14,8 @@ class UserManager(BaseUserManager):
 
     async def acreate_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError("The email number must be set")
+            raise ValueError("The email must be set")
+        email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         await user.asave(using=self._db)

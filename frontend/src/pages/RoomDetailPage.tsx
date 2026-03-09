@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useRoomStore } from "../store/roomStore";
 import { useAuthStore } from "../store/authStore";
+import RoomTimer from "../components/RoomTimer";
 
 const typeIcon = {
   VIDEO: Video,
@@ -25,10 +26,10 @@ const typeStyle = {
   CHAT: "bg-blue-500/20 text-blue-400",
 };
 
-const statusStyle = {
+const statusStyle: Record<string, string> = {
   active: "bg-green-500/20 text-green-400",
   upcoming: "bg-amber-500/20 text-amber-400",
-  inactive: "bg-surface-700 text-surface-400",
+  inactive: "bg-surface-500/20 text-surface-400",
 };
 
 export default function RoomDetailPage() {
@@ -159,7 +160,7 @@ export default function RoomDetailPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-4 mt-2 text-sm text-surface-400">
+          <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-surface-400">
             <span
               className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
                 typeStyle[currentRoom.type]
@@ -178,6 +179,7 @@ export default function RoomDetailPage() {
             <span>
               {currentRoom.visibility ? "Public" : "Private"}
             </span>
+            <RoomTimer status={currentRoom.status} createdAt={currentRoom.created_at} />
           </div>
         </div>
       </div>

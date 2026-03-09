@@ -165,10 +165,6 @@ export default function RoomFormPage() {
     }
   };
 
-  const filteredTopics = form.category
-    ? topics.filter((t) => t.category === form.category)
-    : topics;
-
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
@@ -364,7 +360,6 @@ export default function RoomFormPage() {
             >
               <option value="upcoming">Upcoming</option>
               <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
             </select>
           </div>
           <div className="space-y-2">
@@ -400,7 +395,6 @@ export default function RoomFormPage() {
               setForm((prev) => ({
                 ...prev,
                 category: e.target.value ? Number(e.target.value) : "",
-                topic: [], // reset topics when category changes
               }))
             }
             className="w-full px-4 py-2.5 bg-surface-800 border border-surface-600 rounded-lg text-surface-100 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30"
@@ -415,13 +409,13 @@ export default function RoomFormPage() {
         </div>
 
         {/* Topics */}
-        {filteredTopics.length > 0 && (
+        {topics.length > 0 && (
           <div className="space-y-2">
             <label className="text-sm font-medium text-surface-300">
               Topics
             </label>
             <div className="flex flex-wrap gap-2">
-              {filteredTopics.map((topic) => {
+              {topics.map((topic) => {
                 const selected = form.topic.includes(topic.id);
                 return (
                   <button

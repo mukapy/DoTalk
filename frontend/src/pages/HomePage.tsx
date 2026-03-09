@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { TrendingUp, Users, Flame, Video, Mic, MessageCircle, Hash, Filter } from "lucide-react";
 import api from "../api/axios";
-import type { Room, Category, Topic, PaginatedResponse } from "../types";
+import type { Room, Category, Topic } from "../types";
+import RoomTimer from "../components/RoomTimer";
 
 const typeIcon = {
   VIDEO: Video,
@@ -28,27 +29,20 @@ export default function HomePage() {
   const [roomsLoading, setRoomsLoading] = useState(true);
 
   useEffect(() => {
-    const initialTopics = searchParams.get("topic")?.split(",").filter(Boolean) || [];
-    const initialCategory = searchParams.get("category");
-    setSelectedTopics(initialTopics);
-    setSelectedCategory(initialCategory);
+    const initialTopicSlugs = searchParams.get("topic")?.split(",").filter(Boolean) || [];
+    const initialCategorySlug = searchParams.get("category") || null;
+    setSelectedTopics(initialTopicSlugs);
+    setSelectedCategory(initialCategorySlug);
 
     const fetchInitialData = async () => {
       try {
         const [catsRes, topicsRes] = await Promise.all([
-          api.get<PaginatedResponse<Category> | Category[]>("rooms/categories/"),
-          api.get<PaginatedResponse<Topic> | Topic[]>("rooms/topics/"),
+          api.get<Category[]>("categories/"),
+          api.get<Topic[]>("topics/"),
         ]);
 
-        const catsData = Array.isArray(catsRes.data)
-          ? catsRes.data
-          : catsRes.data.results;
-        const topicsData = Array.isArray(topicsRes.data)
-          ? topicsRes.data
-          : topicsRes.data.results;
-
-        setCategories(catsData);
-        setTopics(topicsData);
+        setCategories(catsRes.data);
+        setTopics(topicsRes.data);
       } catch (error) {
         console.error("Failed to fetch initial data:", error);
       } finally {
@@ -56,25 +50,15 @@ export default function HomePage() {
       }
     };
     fetchInitialData();
-  }, [searchParams]);
+  }, []); // Remove searchParams dependency to prevent re-fetching
 
   useEffect(() => {
     const fetchRooms = async () => {
       setRoomsLoading(true);
       try {
         const params = new URLSearchParams(searchParams.toString());
-        if (selectedTopics.length > 0) params.set("topic", selectedTopics.join(","));
-        else params.delete("topic");
-        
-        if (selectedCategory) params.set("category", selectedCategory);
-        else params.delete("category");
-
-        const roomsRes = await api.get<PaginatedResponse<Room> | Room[]>(`rooms/?${params.toString()}`);
-
-        const roomsData = Array.isArray(roomsRes.data)
-          ? roomsRes.data
-          : roomsRes.data.results;
-        setRooms(roomsData);
+        const roomsRes = await api.get<Room[]>(`rooms/?${params.toString()}`);
+        setRooms(roomsRes.data);
       } catch (error) {
         console.error("Failed to fetch rooms:", error);
         setRooms([]);
@@ -83,11 +67,11 @@ export default function HomePage() {
       }
     };
     fetchRooms();
-  }, [searchParams, selectedTopics, selectedCategory]);
+  }, [searchParams]);
 
   const handleTopicToggle = (topicSlug: string) => {
     const newSelectedTopics = selectedTopics.includes(topicSlug)
-      ? selectedTopics.filter((slug) => slug !== topicSlug)
+      ? selectedTopics.filter((s) => s !== topicSlug)
       : [...selectedTopics, topicSlug];
     
     setSelectedTopics(newSelectedTopics);
@@ -171,13 +155,13 @@ export default function HomePage() {
                     className="bg-surface-900 border border-surface-700 rounded-xl p-4 hover:border-surface-600 transition-colors cursor-pointer"
                   >
                     <div className="flex items-start justify-between">
-                      <div>
+                      <div className="flex-1">
                         <h3 className="text-surface-100 font-medium">{room.name}</h3>
                         <p className="text-surface-500 text-sm mt-1">
                           {room.category?.name}
                           {room.description && ` - ${room.description.slice(0, 60)}...`}
                         </p>
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="flex flex-wrap items-center gap-2 mt-2">
                           {room.topic.map((t) => (
                             <span
                               key={t.id}
@@ -187,6 +171,7 @@ export default function HomePage() {
                               {t.name}
                             </span>
                           ))}
+                          <RoomTimer status={room.status} createdAt={room.created_at} />
                         </div>
                       </div>
                       <div className="flex items-center gap-3">

@@ -11,7 +11,7 @@ export default function GoogleLoginButton() {
   const initializedRef = useRef(false);
 
   const handleCredentialResponse = useCallback(
-    async (response: any) => {
+    async (response: GoogleCredentialResponse) => {
       await googleLogin(response.credential);
       if (useAuthStore.getState().isAuthenticated) {
         navigate("/");

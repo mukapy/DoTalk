@@ -9,6 +9,7 @@ export interface User {
   birth_date: string | null;
   bio: string | null;
   profile_img: string | null;
+  banner: string | null;
   rating: number;
 }
 
@@ -39,7 +40,7 @@ export interface Topic {
   id: number;
   name: string;
   slug: string;
-  category: number;
+  created_by: number | null;
 }
 
 export interface Room {
@@ -73,7 +74,7 @@ export interface RoomFormData {
 
 export interface Message {
   id: number;
-  context: string;
+  content: string;
   room: string;
   sender: number;
   created_at: string;

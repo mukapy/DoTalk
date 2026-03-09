@@ -1,10 +1,24 @@
-import { useState, type FormEvent } from "react";
+import { useState, useMemo, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Mail, KeyRound, UserPlus } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import GoogleLoginButton from "../components/ui/GoogleLoginButton";
 
 type Step = "email" | "code" | "credentials";
+
+function getPasswordStrength(password: string): { score: number; label: string; color: string } {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^a-zA-Z0-9]/.test(password)) score++;
+
+  if (score <= 1) return { score, label: "Weak", color: "bg-red-500" };
+  if (score <= 2) return { score, label: "Fair", color: "bg-orange-500" };
+  if (score <= 3) return { score, label: "Good", color: "bg-yellow-500" };
+  return { score, label: "Strong", color: "bg-green-500" };
+}
 
 export default function RegisterPage() {
   const [step, setStep] = useState<Step>("email");
@@ -16,6 +30,10 @@ export default function RegisterPage() {
 
   const { checkEmail, register, isLoading, error, clearError } = useAuthStore();
   const navigate = useNavigate();
+
+  const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
+
+  const [resendDisabled, setResendDisabled] = useState(false);
 
   // Step 1: Check email availability and trigger verification code
   const handleEmailSubmit = async (e: FormEvent) => {
@@ -41,7 +59,7 @@ export default function RegisterPage() {
   // Step 3: Complete registration
   const handleRegisterSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (password !== confirmPassword) return;
+    if (password.length < 8 || password !== confirmPassword) return;
 
     await register({
       email,
@@ -184,11 +202,16 @@ export default function RegisterPage() {
           </button>
           <button
             type="button"
-            onClick={() => checkEmail(email)}
-            disabled={isLoading}
-            className="w-full py-2 bg-transparent hover:bg-surface-800 text-surface-400 hover:text-surface-200 text-sm rounded-lg transition-colors cursor-pointer border-none"
+            onClick={async () => {
+              setResendDisabled(true);
+              await checkEmail(email);
+              // Disable for 30 seconds to prevent spam
+              setTimeout(() => setResendDisabled(false), 30000);
+            }}
+            disabled={isLoading || resendDisabled}
+            className="w-full py-2 bg-transparent hover:bg-surface-800 text-surface-400 hover:text-surface-200 text-sm rounded-lg transition-colors cursor-pointer border-none disabled:opacity-50"
           >
-            {isLoading ? "Sending..." : "Resend code"}
+            {isLoading ? "Sending..." : resendDisabled ? "Code sent — wait 30s" : "Resend code"}
           </button>
         </form>
       )}
@@ -224,7 +247,26 @@ export default function RegisterPage() {
               required
               className="w-full px-3 py-2.5 bg-surface-800 border border-surface-700 rounded-lg text-surface-100 placeholder-surface-500 text-sm focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-colors"
               placeholder="Create a password"
+              minLength={8}
             />
+            {password && (
+              <div className="mt-2">
+                <div className="flex gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-1 flex-1 rounded-full transition-colors ${
+                        i < passwordStrength.score ? passwordStrength.color : "bg-surface-700"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-surface-400 mt-1">
+                  Password strength: <span className="text-surface-200">{passwordStrength.label}</span>
+                  {password.length < 8 && " — must be at least 8 characters"}
+                </p>
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-surface-300 mb-1.5">
@@ -247,7 +289,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={
-              isLoading || (!!confirmPassword && password !== confirmPassword)
+              isLoading || password.length < 8 || (!!confirmPassword && password !== confirmPassword)
             }
             className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors text-sm cursor-pointer border-none"
           >

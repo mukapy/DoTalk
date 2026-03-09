@@ -1,34 +1,48 @@
-import { Bell, Shield, Palette, Globe, HelpCircle } from "lucide-react";
+import { Bell, Shield, Palette, Globe, HelpCircle, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const settingSections = [
+  {
+    icon: Lock,
+    title: "Change Password",
+    description: "Update your account password",
+    link: "/settings/change-password",
+  },
   {
     icon: Bell,
     title: "Notifications",
     description: "Manage notification preferences",
+    link: null,
   },
   {
     icon: Shield,
     title: "Privacy & Security",
     description: "Control who can see your profile and invite you",
+    link: null,
   },
   {
     icon: Palette,
     title: "Appearance",
     description: "Theme and display settings",
+    link: null,
   },
   {
     icon: Globe,
     title: "Language",
     description: "Change your preferred language",
+    link: null,
   },
   {
     icon: HelpCircle,
     title: "Help & Support",
     description: "FAQ, contact us, and report issues",
+    link: null,
   },
 ];
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
@@ -37,10 +51,11 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-3">
-        {settingSections.map(({ icon: Icon, title, description }) => (
+        {settingSections.map(({ icon: Icon, title, description, link }) => (
           <div
             key={title}
-            className="bg-surface-900 border border-surface-700 rounded-xl p-4 hover:border-surface-600 transition-colors cursor-pointer flex items-center gap-4"
+            onClick={() => link && navigate(link)}
+            className={`bg-surface-900 border border-surface-700 rounded-xl p-4 hover:border-surface-600 transition-colors flex items-center gap-4 ${link ? "cursor-pointer" : "cursor-default opacity-60"}`}
           >
             <div className="w-10 h-10 rounded-lg bg-surface-800 flex items-center justify-center text-surface-300">
               <Icon size={20} />

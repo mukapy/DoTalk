@@ -2,51 +2,181 @@
   {
     "model": "categories.topic",
     "pk": 1,
-    "fields": { "name": "Anime", "slug": "anime" }
+    "fields": {
+      "name": "Synthwave & Retrowave Playlists",
+      "slug": "synthwave-retrowave-playlists",
+      "created_by": 1
+    }
   },
   {
     "model": "categories.topic",
     "pk": 2,
-    "fields": { "name": "Documentary", "slug": "documentary" }
+    "fields": {
+      "name": "Elden Ring DLC Theories & Builds",
+      "slug": "elden-ring-dlc-theories-builds",
+      "created_by": 1
+    }
   },
   {
     "model": "categories.topic",
     "pk": 3,
-    "fields": { "name": "Drama (Film)", "slug": "drama-film" }
+    "fields": {
+      "name": "Isekai Genre Recommendations 2026",
+      "slug": "isekai-genre-recommendations-2026",
+      "created_by": 1
+    }
   },
   {
     "model": "categories.topic",
     "pk": 4,
-    "fields": { "name": "Science Books", "slug": "science-books" }
+    "fields": {
+      "name": "Psychological Thriller Movies",
+      "slug": "psychological-thriller-movies",
+      "created_by": 1
+    }
   },
   {
     "model": "categories.topic",
     "pk": 5,
-    "fields": { "name": "Comics & Manga", "slug": "comics-manga" }
+    "fields": {
+      "name": "Dark Fantasy Book Series",
+      "slug": "dark-fantasy-book-series",
+      "created_by": 1
+    }
   },
   {
     "model": "categories.topic",
     "pk": 6,
-    "fields": { "name": "Drama (Books)", "slug": "drama-books" }
+    "fields": {
+      "name": "Lo-Fi Hip Hop Study Beats",
+      "slug": "lo-fi-hip-hop-study-beats",
+      "created_by": 1
+    }
   },
   {
     "model": "categories.topic",
     "pk": 7,
-    "fields": { "name": "eSports", "slug": "esports" }
+    "fields": {
+      "name": "Battle Royale Shooter Games",
+      "slug": "battle-royale-shooter-games",
+      "created_by": 1
+    }
   },
   {
     "model": "categories.topic",
     "pk": 8,
-    "fields": { "name": "RPG", "slug": "rpg" }
+    "fields": {
+      "name": "Slice of Life Anime Favorites",
+      "slug": "slice-of-life-anime-favorites",
+      "created_by": 1
+    }
   },
   {
     "model": "categories.topic",
     "pk": 9,
-    "fields": { "name": "Artificial Intelligence", "slug": "artificial-intelligence" }
+    "fields": {
+      "name": "Indie Horror Games Discussion",
+      "slug": "indie-horror-games-discussion",
+      "created_by": 1
+    }
   },
   {
     "model": "categories.topic",
     "pk": 10,
-    "fields": { "name": "Space Exploration", "slug": "space-exploration" }
+    "fields": {
+      "name": "Classic Rock Anthems",
+      "slug": "classic-rock-anthems",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 11,
+    "fields": {
+      "name": "Mecha Anime Series",
+      "slug": "mecha-anime-series",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 12,
+    "fields": {
+      "name": "Cyberpunk 2077 Mods & Updates",
+      "slug": "cyberpunk-2077-mods-updates",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 13,
+    "fields": {
+      "name": "Romance Manhwa Recommendations",
+      "slug": "romance-manhwa-recommendations",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 14,
+    "fields": {
+      "name": "Afrobeats & Amapiano Hits",
+      "slug": "afrobeats-amapiano-hits",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 15,
+    "fields": {
+      "name": "Roguelike & Roguelite Games",
+      "slug": "roguelike-roguelite-games",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 16,
+    "fields": {
+      "name": "Post-Apocalyptic Fiction Books",
+      "slug": "post-apocalyptic-fiction-books",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 17,
+    "fields": {
+      "name": "K-Drama Romance Tropes",
+      "slug": "k-drama-romance-tropes",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 18,
+    "fields": {
+      "name": "Vaporwave Aesthetic Music",
+      "slug": "vaporwave-aesthetic-music",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 19,
+    "fields": {
+      "name": "Soulslike Games Challenges",
+      "slug": "soulslike-games-challenges",
+      "created_by": 1
+    }
+  },
+  {
+    "model": "categories.topic",
+    "pk": 20,
+    "fields": {
+      "name": "Fantasy Webtoons & Manhwa",
+      "slug": "fantasy-webtoons-manhwa",
+      "created_by": 1
+    }
   }
 ]
