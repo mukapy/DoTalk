@@ -1,5 +1,4 @@
-from adrf.generics import CreateAPIView, RetrieveAPIView
-from adrf.views import APIView
+from adrf.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, GenericAPIView
 from asgiref.sync import sync_to_async
 from drf_spectacular.utils import extend_schema
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -9,8 +8,6 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from django.contrib.auth.hashers import make_password
-
 from users.models import User
 from users.serializers import (
     GoogleAuthSerializer,
@@ -18,6 +15,7 @@ from users.serializers import (
     CustomTokenObtainPairSerializer,
     UserModelSerializer,
     UserChangePasswordSerializer,
+    UserSetPasswordSerializer,
     UserUpdateProfileSerializer,
 )
 from users.tasks import register_sms
@@ -49,7 +47,7 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 
 @extend_schema(tags=['auth'])
-class UserCheckEmailAPIView(APIView):
+class UserCheckEmailAPIView(GenericAPIView):
     permission_classes = [AllowAny]
 
     async def get(self, request, email):
@@ -61,34 +59,34 @@ class UserCheckEmailAPIView(APIView):
 
 
 @extend_schema(tags=['users'])
-class UserChangePasswordUpdateAPIView(APIView):
-    permission_classes = IsAuthenticated,
+class UserChangePasswordUpdateAPIView(UpdateAPIView):
+    serializer_class = UserChangePasswordSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['patch']
 
-    @extend_schema(request=UserChangePasswordSerializer)
-    async def patch(self, request):
-        serializer = UserChangePasswordSerializer(
-            data=request.data, context={'request': request}
-        )
-        await sync_to_async(serializer.is_valid)(raise_exception=True)
-        user = request.user
-        user.password = make_password(serializer.validated_data['password'])
-        await user.asave(update_fields=['password'])
-        return Response({"success": True})
+    async def aget_object(self):
+        return self.request.user
 
 
 @extend_schema(tags=['users'])
-class UserUpdateProfileAPIView(APIView):
-    permission_classes = IsAuthenticated,
-    parser_classes = [MultiPartParser, FormParser]
+class UserSetPasswordAPIView(UpdateAPIView):
+    serializer_class = UserSetPasswordSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['patch']
 
-    @extend_schema(request=UserUpdateProfileSerializer, responses=UserModelSerializer)
-    async def patch(self, request):
-        serializer = UserUpdateProfileSerializer(
-            request.user, data=request.data, partial=True, context={'request': request}
-        )
-        await sync_to_async(serializer.is_valid)(raise_exception=True)
-        await serializer.asave()
-        return Response(UserModelSerializer(request.user).data)
+    async def aget_object(self):
+        return self.request.user
+
+
+@extend_schema(tags=['users'])
+class UserUpdateProfileAPIView(UpdateAPIView):
+    serializer_class = UserUpdateProfileSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    http_method_names = ['patch']
+
+    async def aget_object(self):
+        return self.request.user
 
 
 @extend_schema(tags=['users'])
@@ -101,7 +99,7 @@ class UserProfileRetrieveAPIView(RetrieveAPIView):
 
 
 @extend_schema(tags=['auth'])
-class LogoutAPIView(APIView):
+class LogoutAPIView(GenericAPIView):
     permission_classes = [IsAuthenticated]
 
     async def post(self, request):

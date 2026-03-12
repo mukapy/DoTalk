@@ -11,6 +11,7 @@ export interface User {
   profile_img: string | null;
   banner: string | null;
   rating: number;
+  has_password: boolean;
 }
 
 export interface AuthTokens {

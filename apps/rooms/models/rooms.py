@@ -29,6 +29,13 @@ class Room(CreatedUUIDBaseModel):
     category = ForeignKey('categories.Category', CASCADE, related_name='rooms')
     topic = ManyToManyField('categories.Topic')
 
+    def delete(self, *args, **kwargs):
+        if self.image:
+            self.image.delete(save=False)
+        if self.banner:
+            self.banner.delete(save=False)
+        super().delete(*args, **kwargs)
+
 
 class Invitation(CreatedUUIDBaseModel):
     class Initiator(TextChoices):

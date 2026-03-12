@@ -60,6 +60,12 @@ interface AuthState {
     confirm_password: string;
   }) => Promise<void>;
 
+  // Set password (for Google OAuth users without a password)
+  setPassword: (data: {
+    password: string;
+    confirm_password: string;
+  }) => Promise<void>;
+
   logout: () => Promise<void>;
   clearError: () => void;
 }
@@ -179,6 +185,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (err) {
       set({
         error: extractErrorMessage(err, "Failed to change password. Please try again."),
+        isLoading: false,
+      });
+      throw err;
+    }
+  },
+
+  setPassword: async (data) => {
+    set({ isLoading: true, error: null });
+    try {
+      await api.patch("users/profile/set-password/", data);
+      set((state) => ({
+        isLoading: false,
+        user: state.user ? { ...state.user, has_password: true } : null,
+      }));
+    } catch (err) {
+      set({
+        error: extractErrorMessage(err, "Failed to set password. Please try again."),
         isLoading: false,
       });
       throw err;

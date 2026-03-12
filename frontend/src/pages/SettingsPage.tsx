@@ -1,47 +1,53 @@
 import { Bell, Shield, Palette, Globe, HelpCircle, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-const settingSections = [
-  {
-    icon: Lock,
-    title: "Change Password",
-    description: "Update your account password",
-    link: "/settings/change-password",
-  },
-  {
-    icon: Bell,
-    title: "Notifications",
-    description: "Manage notification preferences",
-    link: null,
-  },
-  {
-    icon: Shield,
-    title: "Privacy & Security",
-    description: "Control who can see your profile and invite you",
-    link: null,
-  },
-  {
-    icon: Palette,
-    title: "Appearance",
-    description: "Theme and display settings",
-    link: null,
-  },
-  {
-    icon: Globe,
-    title: "Language",
-    description: "Change your preferred language",
-    link: null,
-  },
-  {
-    icon: HelpCircle,
-    title: "Help & Support",
-    description: "FAQ, contact us, and report issues",
-    link: null,
-  },
-];
+import { useAuthStore } from "../store/authStore";
 
 export default function SettingsPage() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+
+  const hasPassword = user?.has_password ?? true;
+
+  const settingSections = [
+    {
+      icon: Lock,
+      title: hasPassword ? "Change Password" : "Set Password",
+      description: hasPassword
+        ? "Update your account password"
+        : "Set a password for your account",
+      link: "/settings/change-password",
+    },
+    {
+      icon: Bell,
+      title: "Notifications",
+      description: "Manage notification preferences",
+      link: null,
+    },
+    {
+      icon: Shield,
+      title: "Privacy & Security",
+      description: "Control who can see your profile and invite you",
+      link: null,
+    },
+    {
+      icon: Palette,
+      title: "Appearance",
+      description: "Theme and display settings",
+      link: null,
+    },
+    {
+      icon: Globe,
+      title: "Language",
+      description: "Change your preferred language",
+      link: null,
+    },
+    {
+      icon: HelpCircle,
+      title: "Help & Support",
+      description: "FAQ, contact us, and report issues",
+      link: null,
+    },
+  ];
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

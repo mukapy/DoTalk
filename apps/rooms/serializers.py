@@ -63,7 +63,6 @@ class RoomWriteSerializer(ModelSerializer):
         topics = validated_data.pop('topic', None)
         validated_data = self._process_images(validated_data)
 
-        # Delete old image files when new ones are uploaded
         if 'image' in validated_data and instance.image:
             old_path = instance.image.path
             if os.path.isfile(old_path):

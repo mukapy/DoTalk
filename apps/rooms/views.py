@@ -48,15 +48,3 @@ class RoomRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         if request.method in ('PUT', 'PATCH', 'DELETE'):
             if obj.creator_id != request.user.id:
                 self.permission_denied(request, message="You are not the creator of this room.")
-
-    async def perform_adestroy(self, instance):
-        for field_name in ('image', 'banner'):
-            field = getattr(instance, field_name)
-            if field:
-                try:
-                    path = field.path
-                    if os.path.isfile(path):
-                        os.remove(path)
-                except Exception:
-                    pass
-        await instance.adelete()

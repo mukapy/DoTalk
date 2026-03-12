@@ -1,10 +1,13 @@
 import os
 
 import httpx
+from asgiref.sync import sync_to_async
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CharField, IntegerField, ImageField as DRFImageField
+from rest_framework import serializers as drf_serializers
 from adrf.serializers import Serializer, ModelSerializer
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -20,9 +23,14 @@ GOOGLE_TOKEN_INFO_URL = "https://oauth2.googleapis.com/tokeninfo"
 
 
 class UserModelSerializer(ModelSerializer):
+    has_password = drf_serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'username', 'birth_date', 'bio', 'profile_img', 'banner', 'rating']
+        fields = ['id', 'first_name', 'last_name', 'email', 'username', 'birth_date', 'bio', 'profile_img', 'banner', 'rating', 'has_password']
+
+    def get_has_password(self, obj):
+        return obj.has_usable_password()
 
 
 class UserRegisterModelSerializer(ModelSerializer):
@@ -73,6 +81,14 @@ class UserRegisterModelSerializer(ModelSerializer):
 
     def to_representation(self, instance):
         refresh = RefreshToken.for_user(self.user)
+        return {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "data": UserModelSerializer(self.user).data
+        }
+
+    async def ato_representation(self, instance):
+        refresh = await sync_to_async(RefreshToken.for_user)(self.user)
         return {
             "refresh": str(refresh),
             "access": str(refresh.access_token),
@@ -146,6 +162,14 @@ class GoogleAuthSerializer(Serializer):
             "data": UserModelSerializer(self.user).data
         }
 
+    async def ato_representation(self, instance):
+        refresh = await sync_to_async(RefreshToken.for_user)(self.user)
+        return {
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+            "data": UserModelSerializer(self.user).data
+        }
+
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
@@ -171,6 +195,43 @@ class UserChangePasswordSerializer(Serializer):
             raise ValidationError({"confirm_password": "Passwords do not match"})
 
         return attrs
+
+    async def aupdate(self, instance, validated_data):
+        instance.password = make_password(validated_data['password'])
+        await instance.asave(update_fields=['password'])
+        return instance
+
+    def to_representation(self, instance):
+        return {"success": True}
+
+    async def ato_representation(self, instance):
+        return {"success": True}
+
+
+class UserSetPasswordSerializer(Serializer):
+    password = CharField(max_length=255, required=True)
+    confirm_password = CharField(max_length=255, required=True)
+
+    def validate(self, attrs: dict):
+        user = self.context['request'].user
+        if user.has_usable_password():
+            raise ValidationError({"detail": "You already have a password. Use change password instead."})
+
+        if attrs['password'] != attrs['confirm_password']:
+            raise ValidationError({"confirm_password": "Passwords do not match"})
+
+        return attrs
+
+    async def aupdate(self, instance, validated_data):
+        instance.password = make_password(validated_data['password'])
+        await instance.asave(update_fields=['password'])
+        return instance
+
+    def to_representation(self, instance):
+        return {"success": True}
+
+    async def ato_representation(self, instance):
+        return {"success": True}
 
 
 class UserUpdateProfileSerializer(ModelSerializer):
@@ -215,3 +276,9 @@ class UserUpdateProfileSerializer(ModelSerializer):
             setattr(instance, attr, value)
         await instance.asave()
         return instance
+
+    def to_representation(self, instance):
+        return UserModelSerializer(instance).data
+
+    async def ato_representation(self, instance):
+        return UserModelSerializer(instance).data
