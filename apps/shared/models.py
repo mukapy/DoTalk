@@ -46,23 +46,21 @@ class SlugBaseModel(Model):
             return self.name
         return self.title
 
-    def save(self, *, force_insert=False, force_update=False, using=None, update_fields=None):
-        if hasattr(self, 'name'):
-            self.slug = slugify(self.name)
-            super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
-        elif hasattr(self, 'title'):
-            self.slug = slugify(self.title)
-            super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            if hasattr(self, 'name') and self.name:
+                self.slug = slugify(self.name)
+            elif hasattr(self, 'title') and self.title:
+                self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
 
-    async def asave(self, *, force_insert=False, force_update=False, using=None, update_fields=None):
-        if hasattr(self, 'name'):
-            self.slug = slugify(self.name)
-            await super().asave(force_insert=force_insert, force_update=force_update, using=using,
-                                update_fields=update_fields)
-        elif hasattr(self, 'title'):
-            self.slug = slugify(self.title)
-            await super().asave(force_insert=force_insert, force_update=force_update, using=using,
-                                update_fields=update_fields)
+    async def asave(self, *args, **kwargs):
+        if not self.slug:
+            if hasattr(self, 'name') and self.name:
+                self.slug = slugify(self.name)
+            elif hasattr(self, 'title') and self.title:
+                self.slug = slugify(self.title)
+        await super().asave(*args, **kwargs)
 
 
 class CreatedSlugBaseModel(SlugBaseModel):
@@ -71,4 +69,4 @@ class CreatedSlugBaseModel(SlugBaseModel):
 
     class Meta:
         abstract = True
-        ordering = '-created_at'
+        ordering = '-created_at',
