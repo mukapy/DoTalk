@@ -42,12 +42,33 @@ class SlugBaseModel(Model):
         abstract = True
 
     def __str__(self):
-        return self.name
+        if hasattr(self, 'name'):
+            return self.name
+        return self.title
 
     def save(self, *, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.slug = slugify(self.name)
-        super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
+        if hasattr(self, 'name'):
+            self.slug = slugify(self.name)
+            super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
+        elif hasattr(self, 'title'):
+            self.slug = slugify(self.title)
+            super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
 
     async def asave(self, *, force_insert=False, force_update=False, using=None, update_fields=None):
-        self.slug = slugify(self.name)
-        await super().asave(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
+        if hasattr(self, 'name'):
+            self.slug = slugify(self.name)
+            await super().asave(force_insert=force_insert, force_update=force_update, using=using,
+                                update_fields=update_fields)
+        elif hasattr(self, 'title'):
+            self.slug = slugify(self.title)
+            await super().asave(force_insert=force_insert, force_update=force_update, using=using,
+                                update_fields=update_fields)
+
+
+class CreatedSlugBaseModel(SlugBaseModel):
+    created_at = DateTimeField(auto_now_add=True)
+    updated_at = DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+        ordering = '-created_at'

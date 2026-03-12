@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Search, Bell } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 
@@ -45,14 +46,14 @@ export default function Header() {
           <span className="absolute top-1 right-1 w-2 h-2 bg-primary-500 rounded-full" />
         </button>
 
-        <div className="flex items-center gap-3">
+        <Link to="/profile" className="flex items-center gap-3 no-underline">
           <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium">
             {displayInitial(user)}
           </div>
           <span className="text-sm font-medium text-surface-200 hidden sm:block">
             {displayName(user)}
           </span>
-        </div>
+        </Link>
       </div>
     </header>
   );
