@@ -20,4 +20,5 @@ dependencies = [
     "redis>=7.2.1",
     "uvicorn[standard]>=0.34.0",
     "gunicorn>=25.1.0",
+    "djangorestframework-stubs>=3.16.8",
 ]

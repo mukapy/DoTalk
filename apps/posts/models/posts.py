@@ -44,7 +44,7 @@ class PostVote(CreatedBaseModel):
 
     post = ForeignKey('posts.Post', CASCADE, related_name='post_votes')
     user = ForeignKey('users.User', CASCADE, related_name='post_votes')
-    type = CharField(max_length=20, choices=Type.choices)
+    type = CharField(max_length=20, choices=Type.choices, default=Type.UPVOTE)
 
 
 class Comment(CreatedBaseModel):
@@ -60,4 +60,4 @@ class CommentVote(CreatedBaseModel):
 
     comment = ForeignKey('posts.Comment', CASCADE, related_name='comment_votes')
     user = ForeignKey('users.User', CASCADE, related_name='comment_votes')
-    type = CharField(max_length=20, choices=Type.choices)
+    type = CharField(max_length=20, choices=Type.choices, default=Type.UPVOTE)

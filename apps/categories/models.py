@@ -1,5 +1,5 @@
-from django.db.models.fields import CharField, TextField, BooleanField
-from django.db.models import ForeignKey, SET_NULL
+from django.db.models.fields import CharField, TextField, DateTimeField
+from django.db.models import ForeignKey, SET_NULL, TextChoices
 
 from shared.models import SlugBaseModel, CreatedSlugBaseModel
 
@@ -10,11 +10,19 @@ class Category(SlugBaseModel):
 
 class Topic(SlugBaseModel):
     name = CharField(max_length=225)
-    created_by = ForeignKey('users.User', SET_NULL, null=True, blank=True, related_name='created_topics', )
+    is_active = CharField(max_length=10, default='active')
+    created_by = ForeignKey('users.User', SET_NULL, null=True, blank=True, related_name='created_topics')
 
 
 class TopicRequest(CreatedSlugBaseModel):
+    class Status(TextChoices):
+        PENDING = 'pending'
+        APPROVED = 'approved'
+        REJECTED = 'rejected'
+
     name = CharField(max_length=225)
     description = TextField(blank=True, null=True)
     created_by = ForeignKey('users.User', SET_NULL, null=True, blank=True, related_name='created_topic_requests')
-    is_approved = BooleanField(default=False)
+    status = CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    reviewed_by = ForeignKey('users.User', SET_NULL, null=True, blank=True, related_name='reviewed_topic_requests')
+    reviewed_at = DateTimeField(null=True, blank=True)

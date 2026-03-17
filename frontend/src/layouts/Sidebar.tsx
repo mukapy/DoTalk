@@ -8,6 +8,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Shield,
 } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
 import { useUIStore } from "../store/uiStore";
@@ -22,7 +23,10 @@ const navItems = [
 
 export default function Sidebar() {
   const logout = useAuthStore((s) => s.logout);
+  const user = useAuthStore((s) => s.user);
   const { sidebarOpen, toggleSidebar } = useUIStore();
+
+  const isModOrAdmin = user?.type === "moderator" || user?.type === "admin";
 
   return (
     <aside
@@ -66,6 +70,23 @@ export default function Sidebar() {
             {sidebarOpen && <span className="text-sm font-medium">{label}</span>}
           </NavLink>
         ))}
+
+        {/* Moderation - visible only to moderators and admins */}
+        {isModOrAdmin && (
+          <NavLink
+            to="/moderation"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors no-underline ${
+                isActive
+                  ? "bg-primary-600/20 text-primary-400"
+                  : "text-surface-400 hover:bg-surface-800 hover:text-surface-100"
+              }`
+            }
+          >
+            <Shield size={20} className="shrink-0" />
+            {sidebarOpen && <span className="text-sm font-medium">Moderation</span>}
+          </NavLink>
+        )}
       </nav>
 
       {/* Logout */}

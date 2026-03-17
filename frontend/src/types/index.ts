@@ -12,6 +12,7 @@ export interface User {
   banner: string | null;
   rating: number;
   has_password: boolean;
+  type: 'admin' | 'moderator' | 'user';
 }
 
 export interface AuthTokens {
@@ -87,4 +88,16 @@ export interface PaginatedResponse<T> {
   next: string | null;
   previous: string | null;
   results: T[];
+}
+
+export interface TopicRequest {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  created_by: User | null;
+  reviewed_by: User | null;
+  reviewed_at: string | null;
+  created_at: string;
 }

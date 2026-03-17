@@ -9,6 +9,7 @@ from shared.models import CreatedBaseModel
 class User(AbstractUser, CreatedBaseModel):
     class Types(TextChoices):
         ADMIN = 'admin'
+        MODERATOR = 'moderator'
         USER = 'user'
 
     email = EmailField(unique=True)

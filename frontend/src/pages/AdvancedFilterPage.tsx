@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Hash, Plus, ChevronDown } from "lucide-react";
+import { Search, Hash, Plus, ChevronDown, Send, CheckCircle, X } from "lucide-react";
 import api from "../api/axios";
-import type { Category, Topic } from "../types";
+import type { Category, Topic, TopicRequest } from "../types";
 
 const TOPICS_TO_SHOW_INITIALLY = 8; // Adjust this number to control how many topics appear in the first two rows
 
@@ -16,9 +16,12 @@ export default function AdvancedFilterPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get("category") || null);
   const [selectedTopics, setSelectedTopics] = useState<string[]>(searchParams.get("topic")?.split(",").filter(Boolean) || []);
   const [loading, setLoading] = useState(true);
-  const [showNewTopicForm, setShowNewTopicForm] = useState(false);
-  const [newTopicName, setNewTopicName] = useState("");
-  const [isSubmittingTopic, setIsSubmittingTopic] = useState(false);
+  const [showSuggestForm, setShowSuggestForm] = useState(false);
+  const [suggestName, setSuggestName] = useState("");
+  const [suggestDesc, setSuggestDesc] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [isTopicsExpanded, setIsTopicsExpanded] = useState(false);
 
   const fetchTopics = async () => {
@@ -60,22 +63,33 @@ export default function AdvancedFilterPage() {
     );
   };
 
-  const handleAddNewTopic = async (e: React.FormEvent) => {
+  const handleSuggestTopic = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTopicName.trim()) return;
+    if (!suggestName.trim()) return;
 
-    setIsSubmittingTopic(true);
+    setIsSubmitting(true);
+    setSubmitError(null);
     try {
-      const response = await api.post<Topic>("topics/", { name: newTopicName });
-      setTopics((prev) => [...prev, response.data]);
-      setSelectedTopics((prev) => [...prev, response.data.slug]);
-      setNewTopicName("");
-      setShowNewTopicForm(false);
-    } catch (error) {
-      console.error("Failed to create topic:", error);
-      // Optionally, show an error message to the user
+      await api.post<TopicRequest>("topic-requests/", {
+        name: suggestName,
+        description: suggestDesc || undefined,
+      });
+      setSuggestName("");
+      setSuggestDesc("");
+      setSubmitSuccess(true);
+      setTimeout(() => {
+        setSubmitSuccess(false);
+        setShowSuggestForm(false);
+      }, 2000);
+    } catch (err: any) {
+      const data = err?.response?.data;
+      if (data?.name) {
+        setSubmitError(Array.isArray(data.name) ? data.name[0] : data.name);
+      } else {
+        setSubmitError("Failed to submit request. Please try again.");
+      }
     } finally {
-      setIsSubmittingTopic(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -173,30 +187,67 @@ export default function AdvancedFilterPage() {
               Topics (select many)
             </label>
             <button
-              onClick={() => setShowNewTopicForm(!showNewTopicForm)}
-              className="flex items-center gap-1 text-xs text-primary-400 hover:text-primary-300"
+              onClick={() => {
+                setShowSuggestForm(!showSuggestForm);
+                setSubmitError(null);
+                setSubmitSuccess(false);
+              }}
+              className="flex items-center gap-1 text-xs text-primary-400 hover:text-primary-300 bg-transparent border-none cursor-pointer"
             >
               <Plus size={14} />
-              Enhance
+              Suggest Topic
             </button>
           </div>
-          {showNewTopicForm && (
-            <form onSubmit={handleAddNewTopic} className="flex gap-2 mb-3">
-              <input
-                type="text"
-                value={newTopicName}
-                onChange={(e) => setNewTopicName(e.target.value)}
-                placeholder="Enter new topic name"
-                className="flex-grow px-3 py-2 bg-surface-800 border border-surface-600 rounded-lg text-sm text-surface-100 focus:outline-none focus:border-primary-500"
-              />
-              <button
-                type="submit"
-                disabled={isSubmittingTopic}
-                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg disabled:opacity-50"
-              >
-                {isSubmittingTopic ? "Adding..." : "Add"}
-              </button>
-            </form>
+          {showSuggestForm && (
+            <div className="bg-surface-800 border border-surface-700 rounded-lg p-4 mb-3">
+              {submitSuccess ? (
+                <div className="flex items-center gap-2 text-green-400">
+                  <CheckCircle size={16} />
+                  <p className="text-sm font-medium">
+                    Submitted! A moderator will review it shortly.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleSuggestTopic} className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-surface-300">Suggest a New Topic</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSuggestForm(false)}
+                      className="p-1 text-surface-500 hover:text-surface-300 bg-transparent border-none cursor-pointer"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={suggestName}
+                    onChange={(e) => setSuggestName(e.target.value)}
+                    placeholder="Topic name"
+                    className="w-full px-3 py-2 bg-surface-900 border border-surface-600 rounded-lg text-sm text-surface-100 placeholder-surface-500 focus:outline-none focus:border-primary-500"
+                    required
+                  />
+                  <textarea
+                    value={suggestDesc}
+                    onChange={(e) => setSuggestDesc(e.target.value)}
+                    placeholder="Brief description (optional)"
+                    rows={2}
+                    className="w-full px-3 py-2 bg-surface-900 border border-surface-600 rounded-lg text-sm text-surface-100 placeholder-surface-500 focus:outline-none focus:border-primary-500 resize-none"
+                  />
+                  {submitError && (
+                    <p className="text-red-400 text-xs">{submitError}</p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !suggestName.trim()}
+                    className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer border-none"
+                  >
+                    <Send size={14} />
+                    {isSubmitting ? "Submitting..." : "Submit for Review"}
+                  </button>
+                </form>
+              )}
+            </div>
           )}
           {loading ? <div className="text-sm text-surface-500">Loading topics...</div> : (
             <>

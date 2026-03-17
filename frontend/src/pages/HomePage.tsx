@@ -1,21 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { TrendingUp, Users, Flame, Video, Mic, MessageCircle, Hash, Filter } from "lucide-react";
+import { TrendingUp, Flame, Filter, Hash, MessageCircle } from "lucide-react";
 import api from "../api/axios";
 import type { Room, Category, Topic } from "../types";
-import RoomTimer from "../components/RoomTimer";
-
-const typeIcon = {
-  VIDEO: Video,
-  VOICE: Mic,
-  CHAT: MessageCircle,
-};
-
-const typeStyle = {
-  VIDEO: "bg-red-500/20 text-red-400",
-  VOICE: "bg-green-500/20 text-green-400",
-  CHAT: "bg-blue-500/20 text-blue-400",
-};
+import RoomCard from "../components/RoomCard"; // Import the new RoomCard component
 
 export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,16 +11,16 @@ export default function HomePage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedTopics, setSelectedTopics] = useState<number[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [roomsLoading, setRoomsLoading] = useState(true);
 
   useEffect(() => {
-    const initialTopicSlugs = searchParams.get("topic")?.split(",").filter(Boolean) || [];
-    const initialCategorySlug = searchParams.get("category") || null;
-    setSelectedTopics(initialTopicSlugs);
-    setSelectedCategory(initialCategorySlug);
+    const initialTopicIds = searchParams.get("topic")?.split(",").map(Number).filter(Boolean) || [];
+    const initialCategoryId = Number(searchParams.get("category")) || null;
+    setSelectedTopics(initialTopicIds);
+    setSelectedCategory(initialCategoryId);
 
     const fetchInitialData = async () => {
       try {
@@ -50,7 +38,7 @@ export default function HomePage() {
       }
     };
     fetchInitialData();
-  }, []); // Remove searchParams dependency to prevent re-fetching
+  }, []);
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -69,10 +57,10 @@ export default function HomePage() {
     fetchRooms();
   }, [searchParams]);
 
-  const handleTopicToggle = (topicSlug: string) => {
-    const newSelectedTopics = selectedTopics.includes(topicSlug)
-      ? selectedTopics.filter((s) => s !== topicSlug)
-      : [...selectedTopics, topicSlug];
+  const handleTopicToggle = (topicId: number) => {
+    const newSelectedTopics = selectedTopics.includes(topicId)
+      ? selectedTopics.filter((id) => id !== topicId)
+      : [...selectedTopics, topicId];
     
     setSelectedTopics(newSelectedTopics);
     
@@ -85,13 +73,13 @@ export default function HomePage() {
     setSearchParams(newSearchParams);
   };
 
-  const handleCategoryClick = (slug: string) => {
-    const newSelectedCategory = selectedCategory === slug ? null : slug;
+  const handleCategoryClick = (id: number) => {
+    const newSelectedCategory = selectedCategory === id ? null : id;
     setSelectedCategory(newSelectedCategory);
 
     const newSearchParams = new URLSearchParams(searchParams.toString());
     if (newSelectedCategory) {
-      newSearchParams.set("category", newSelectedCategory);
+      newSearchParams.set("category", String(newSelectedCategory));
     } else {
       newSearchParams.delete("category");
     }
@@ -146,52 +134,9 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {rooms.map((room) => {
-                const Icon = typeIcon[room.type] || MessageCircle;
-                return (
-                  <div
-                    key={room.uuid}
-                    onClick={() => navigate(`/rooms/${room.uuid}`)}
-                    className="bg-surface-900 border border-surface-700 rounded-xl p-4 hover:border-surface-600 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="text-surface-100 font-medium">{room.name}</h3>
-                        <p className="text-surface-500 text-sm mt-1">
-                          {room.category?.name}
-                          {room.description && ` - ${room.description.slice(0, 60)}...`}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2 mt-2">
-                          {room.topic.map((t) => (
-                            <span
-                              key={t.id}
-                              className="px-2 py-1 bg-surface-800 rounded-full text-xs text-surface-300"
-                            >
-                              <Hash size={10} className="inline-block mr-1" />
-                              {t.name}
-                            </span>
-                          ))}
-                          <RoomTimer status={room.status} createdAt={room.created_at} />
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center gap-1 text-xs text-surface-400">
-                          <Users size={14} />
-                          {room.capacity}
-                        </span>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
-                            typeStyle[room.type] || "bg-blue-500/20 text-blue-400"
-                          }`}
-                        >
-                          <Icon size={12} />
-                          {room.type.toLowerCase()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {rooms.map((room) => (
+                <RoomCard key={room.uuid} room={room} />
+              ))}
             </div>
           )}
         </div>
@@ -222,17 +167,17 @@ export default function HomePage() {
                   {categories.map((cat) => (
                     <div
                       key={cat.id}
-                      onClick={() => handleCategoryClick(cat.slug)}
+                      onClick={() => handleCategoryClick(cat.id)}
                       className={`flex items-center gap-3 p-3 hover:bg-surface-800 transition-colors cursor-pointer first:rounded-t-xl last:rounded-b-xl ${
-                        selectedCategory === cat.slug ? "bg-surface-800 border-l-2 border-primary-500" : ""
+                        selectedCategory === cat.id ? "bg-surface-800 border-l-2 border-primary-500" : ""
                       }`}
                     >
                       <div className="flex-1">
-                        <p className={`text-sm font-medium ${selectedCategory === cat.slug ? "text-primary-400" : "text-surface-200"}`}>
+                        <p className={`text-sm font-medium ${selectedCategory === cat.id ? "text-primary-400" : "text-surface-200"}`}>
                           {cat.name}
                         </p>
                       </div>
-                      <MessageCircle size={16} className={selectedCategory === cat.slug ? "text-primary-400" : "text-surface-500"} />
+                      <MessageCircle size={16} className={selectedCategory === cat.id ? "text-primary-400" : "text-surface-500"} />
                     </div>
                   ))}
                 </div>
@@ -261,8 +206,8 @@ export default function HomePage() {
                   >
                     <input
                       type="checkbox"
-                      checked={selectedTopics.includes(topic.slug)}
-                      onChange={() => handleTopicToggle(topic.slug)}
+                      checked={selectedTopics.includes(topic.id)}
+                      onChange={() => handleTopicToggle(topic.id)}
                       className="form-checkbox h-4 w-4 text-primary-600 rounded border-surface-600 focus:ring-primary-500 bg-surface-800"
                     />
                     <span className="text-surface-200 text-sm">{topic.name}</span>
