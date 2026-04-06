@@ -145,7 +145,10 @@ export default function RoomFormPage() {
     fd.append("description", form.description);
     if (form.category !== "") fd.append("category", String(form.category));
     form.topic.forEach((id) => fd.append("topic", String(id)));
-    fd.append("type", form.type);
+    // Don't send type when editing an active room (type switching is locked)
+    if (!(isEdit && currentRoom?.status === "active")) {
+      fd.append("type", form.type);
+    }
     fd.append("capacity", String(form.capacity));
     fd.append("visibility", String(form.visibility));
     fd.append("status", form.status);
@@ -306,20 +309,35 @@ export default function RoomFormPage() {
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-sm font-medium text-surface-300">Type *</label>
-            <select
-              value={form.type}
-              onChange={(e) =>
-                setForm((prev) => ({
-                  ...prev,
-                  type: e.target.value as RoomFormData["type"],
-                }))
-              }
-              className="w-full px-4 py-2.5 bg-surface-800 border border-surface-600 rounded-lg text-surface-100 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30"
-            >
-              <option value="VIDEO">Video</option>
-              <option value="VOICE">Voice</option>
-              <option value="CHAT">Chat</option>
-            </select>
+            {isEdit && currentRoom?.status === "active" ? (
+              <>
+                <div className="w-full px-4 py-2.5 bg-surface-800/50 border border-surface-600 rounded-lg text-surface-400 cursor-not-allowed">
+                  {form.type === "VIDEO"
+                    ? "Video"
+                    : form.type === "VOICE"
+                    ? "Voice"
+                    : "Chat"}
+                </div>
+                <p className="text-xs text-warning">
+                  Room type cannot be changed while the room is active
+                </p>
+              </>
+            ) : (
+              <select
+                value={form.type}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    type: e.target.value as RoomFormData["type"],
+                  }))
+                }
+                className="w-full px-4 py-2.5 bg-surface-800 border border-surface-600 rounded-lg text-surface-100 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500/30"
+              >
+                <option value="VIDEO">Video</option>
+                <option value="VOICE">Voice</option>
+                <option value="CHAT">Chat</option>
+              </select>
+            )}
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-surface-300">

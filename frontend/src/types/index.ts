@@ -101,3 +101,30 @@ export interface TopicRequest {
   reviewed_at: string | null;
   created_at: string;
 }
+
+// --- Video Chat / WebRTC types ---
+
+export interface Peer {
+  userId: number;
+  username: string;
+  channelName: string;
+  connection: RTCPeerConnection;
+  stream: MediaStream | null;
+  screenStream: MediaStream | null;
+}
+
+export interface ChatMessage {
+  userId: number;
+  username: string;
+  message: string;
+  timestamp: number;
+}
+
+export type SignalingMessage =
+  | { type: 'join' }
+  | { type: 'offer'; sdp: RTCSessionDescriptionInit; target_channel: string }
+  | { type: 'answer'; sdp: RTCSessionDescriptionInit; target_channel: string }
+  | { type: 'ice-candidate'; candidate: RTCIceCandidateInit; target_channel: string }
+  | { type: 'screen-share-started' }
+  | { type: 'screen-share-stopped' }
+  | { type: 'chat-message'; message: string };

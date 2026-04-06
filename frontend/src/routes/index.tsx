@@ -16,6 +16,7 @@ import RoomDetailPage from "../pages/RoomDetailPage";
 import RoomFormPage from "../pages/RoomFormPage";
 import AdvancedFilterPage from "../pages/AdvancedFilterPage";
 import TopicRequestsPage from "../pages/TopicRequestsPage";
+import VideoRoomPage from "../pages/VideoRoomPage";
 
 export const router = createBrowserRouter([
   // Auth routes (guest only)
@@ -53,6 +54,8 @@ export const router = createBrowserRouter([
           { path: "/moderation", element: <TopicRequestsPage /> },
         ],
       },
+      // Video room is full-screen (no MainLayout sidebar/header)
+      { path: "/rooms/:uuid/live", element: <VideoRoomPage /> },
     ],
   },
 ]);

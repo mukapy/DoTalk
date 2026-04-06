@@ -68,7 +68,7 @@ export default function RoomCard({ room }: RoomCardProps) {
             {t.name}
           </span>
         ))}
-        <RoomTimer status={room.status} startTime={room.start_time} createdAt={room.created_at} />
+        <RoomTimer status={room.status} createdAt={room.created_at} />
       </div>
     </div>
   );

@@ -24,6 +24,7 @@ sys.path.append(os.path.join(BASE_DIR, 'apps'))
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
 
     # Third party apps
     'adrf',
+    'channels',
     'rest_framework',
     'drf_spectacular',
     'rest_framework_simplejwt',
@@ -88,6 +90,16 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'root.wsgi.application'
+ASGI_APPLICATION = 'root.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(os.getenv('REDIS_HOST', '127.0.0.1'), int(os.getenv('REDIS_PORT', 6379)))],
+        },
+    },
+}
 
 DATABASES = {
     'default': {

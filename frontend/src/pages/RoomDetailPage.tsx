@@ -212,6 +212,24 @@ export default function RoomDetailPage() {
         </div>
       )}
 
+      {/* Join Video Call button — only for active VIDEO rooms */}
+      {currentRoom.type === "VIDEO" && currentRoom.status === "active" && (
+        <button
+          onClick={() => navigate(`/rooms/${currentRoom.uuid}/live`)}
+          className="flex items-center justify-center gap-2 w-full py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors cursor-pointer border-none"
+        >
+          <Video size={20} />
+          Join Video Call
+        </button>
+      )}
+
+      {/* Info for non-active VIDEO rooms */}
+      {currentRoom.type === "VIDEO" && currentRoom.status === "upcoming" && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 text-sm text-amber-400">
+          This video room is not active yet. The call will be available once the room becomes active.
+        </div>
+      )}
+
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">

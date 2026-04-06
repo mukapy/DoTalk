@@ -1,6 +1,7 @@
 import os
 
 from adrf.serializers import ModelSerializer
+from rest_framework.exceptions import ValidationError
 from rest_framework.fields import ImageField as DRFImageField
 
 from rooms.models import Room
@@ -60,6 +61,16 @@ class RoomWriteSerializer(ModelSerializer):
         return room
 
     async def aupdate(self, instance, validated_data):
+        # Prevent type switching on active rooms
+        if (
+            instance.status == Room.Status.ACTIVE
+            and 'type' in validated_data
+            and validated_data['type'] != instance.type
+        ):
+            raise ValidationError({
+                'type': 'Room type cannot be changed while the room is active.'
+            })
+
         topics = validated_data.pop('topic', None)
         validated_data = self._process_images(validated_data)
 
